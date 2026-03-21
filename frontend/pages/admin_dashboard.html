@@ -301,7 +301,7 @@
 <!-- ══════════════ SCRIPTS ══════════════ -->
 <script>
 const API = 'http://127.0.0.1:5000/api';
-const DEMO_MODE = false;
+const DEMO_MODE = new URLSearchParams(window.location.search).get('live') !== '1';
 const toNum = (v, d = 0) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : d;
