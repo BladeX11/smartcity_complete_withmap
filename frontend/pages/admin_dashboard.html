@@ -306,10 +306,14 @@ const toNum = (v, d = 0) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : d;
 };
+const asArray = (v) => Array.isArray(v) ? v : [];
+const asObject = (v) => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
+const PRIORITY_COLORS = { Critical: '#dc3545', High: '#fd7e14', Medium: '#ffc107', Low: '#28a745' };
+
 document.addEventListener("DOMContentLoaded", function() {
    if (DEMO_MODE) {
       refreshDashboard();
-   } else {
+    } else {
       loadLiveData();
    }
 });
@@ -320,21 +324,11 @@ async function loadLiveData(){
     const json = await res.json();
 
     if(!json?.success || !json?.data) throw new Error('Invalid KPI response');
-    const d = json.data;
-    demo.kpi = d;
-
-    // update KPIs from backend
-    document.getElementById('kv-total').textContent    = d.total_complaints;
-    document.getElementById('kv-today').textContent    = `+${d.new_today} today · ${d.new_this_week} this week`;
-    document.getElementById('kv-pending').textContent  = d.pending;
-    document.getElementById('kv-critical').textContent = `${d.critical} critical`;
-    document.getElementById('kv-resolved').textContent = d.resolved;
-    document.getElementById('kv-reso-pct').textContent = `${d.resolution_pct}% rate`;
-    document.getElementById('kv-hotspot').textContent  = d.hotspot_complaints;
-    document.getElementById('kv-avg-hrs').textContent  = `${d.avg_resolution_hrs}h avg resolution`;
+    demo.kpi = { ...demo.kpi, ...asObject(json.data) };
 
     // now fetch chart data
     await loadLiveCharts();
+    refreshDashboard();
 
   } catch(err){
     console.error("Live analytics error:", err);
@@ -347,7 +341,7 @@ async function loadLiveCharts(){
       const r = await fetch(API + path, { credentials:'include' });
       if(!r.ok) return null;
       const j = await r.json();
-      return j?.success ? (j.data || []) : null;
+      return j?.success ? (j.data ?? null) : null;
     }catch(_e){
       return null;
     }
@@ -362,15 +356,70 @@ async function loadLiveCharts(){
     fetchApi("/analytics/high-priority-pending")
   ]);
 
-  // push backend data into demo structure
-  if(monthly) demo.monthly = monthly;
-  if(category) demo.categories = category;
-  if(dept) demo.departments = dept;
-  if(sla) demo.sla = sla;
-  if(hotspots) demo.hotspots = hotspots;
-  if(priority) demo.highPriority = priority;
+  const monthlyRows = asArray(monthly).map((m)=>({
+    ...m,
+    label: m?.label || m?.month || '',
+    total: toNum(m?.total),
+    resolved: toNum(m?.resolved),
+    pending: toNum(m?.pending),
+    critical: toNum(m?.critical),
+    avg_hrs: toNum(m?.avg_hrs)
+  }));
+  if(monthlyRows.length) demo.monthly = monthlyRows;
 
-  refreshDashboard(); // reuse existing render functions
+  const categoryRows = asArray(category).map((c)=>({
+    ...c,
+    cat_name: c?.cat_name || 'Unknown',
+    total: toNum(c?.total),
+    pct: toNum(c?.pct)
+  }));
+  if(categoryRows.length) demo.categories = categoryRows;
+
+  const deptRows = asArray(dept).map((d)=>({
+    ...d,
+    dept_name: d?.dept_name || 'Department',
+    dept_code: d?.dept_code || '',
+    head_name: d?.head_name || '-',
+    total: toNum(d?.total),
+    resolved: toNum(d?.resolved),
+    pending: toNum(d?.pending),
+    avg_hrs: toNum(d?.avg_hrs),
+    resolution_pct: toNum(d?.resolution_pct)
+  }));
+  if(deptRows.length) demo.departments = deptRows;
+
+  const slaRows = asArray(sla).map((s)=>({
+    ...s,
+    priority_name: s?.priority_name || 'Medium',
+    target_hrs: toNum(s?.target_hrs),
+    avg_actual_hrs: toNum(s?.avg_actual_hrs),
+    compliance_pct: toNum(s?.compliance_pct)
+  }));
+  if(slaRows.length) demo.sla = slaRows;
+
+  const hotspotRows = asArray(hotspots).map((h)=>({
+    ...h,
+    area_name: h?.area_name || 'Unknown area',
+    ward_number: h?.ward_number || '-',
+    zone: h?.zone || '-',
+    total_30d: toNum(h?.total_30d),
+    high_priority: toNum(h?.high_priority),
+    unresolved: toNum(h?.unresolved)
+  }));
+  if(hotspotRows.length) demo.hotspots = hotspotRows;
+
+  const priorityRows = asArray(priority).map((p)=>({
+    ...p,
+    complaint_code: p?.complaint_code || '-',
+    title: p?.title || 'Untitled complaint',
+    priority_name: p?.priority_name || 'High',
+    color_code: p?.color_code || PRIORITY_COLORS[p?.priority_name] || '#fd7e14',
+    area_name: p?.area_name || '-',
+    dept_name: p?.dept_name || '-',
+    age_hours: toNum(p?.age_hours),
+    sla_status: p?.sla_status === 'BREACHED' ? 'BREACHED' : 'OK'
+  }));
+  if(priorityRows.length) demo.highPriority = priorityRows;
 }
 
 // DEMO DATA
