@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartCity — Complete Setup Guide</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;
+  --accent:#00b0ff;--success:#00c853;--warning:#ffab00;--danger:#f44336;--purple:#7c4dff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6}
+.sidebar{width:260px;background:var(--card);border-right:1px solid var(--border);height:100vh;
+  position:fixed;top:0;left:0;overflow-y:auto;z-index:100}
+.sidebar-brand{padding:20px;border-bottom:1px solid var(--border);font-weight:800;font-size:15px;
+  display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,#1a237e,#1565c0);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.nav-item{display:block;padding:10px 16px;color:var(--muted);text-decoration:none;
+  font-size:13px;border-left:3px solid transparent;transition:.2s}
+.nav-item:hover,.nav-item.active{color:var(--accent);background:rgba(0,176,255,.06);border-left-color:var(--accent)}
+.nav-item i{width:20px;margin-right:8px;font-size:13px}
+.nav-section{padding:12px 16px 4px;font-size:10px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;color:var(--muted)}
+.main{margin-left:260px;padding:40px 48px;max-width:1000px}
+h1{font-size:32px;font-weight:900;margin-bottom:8px}
+h2{font-size:22px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+h3{font-size:16px;font-weight:700;margin-bottom:10px;color:var(--accent)}
+.hero{background:linear-gradient(135deg,rgba(26,35,126,.3),rgba(21,101,192,.2));
+  border:1px solid rgba(0,176,255,.2);border-radius:16px;padding:32px;margin-bottom:40px}
+.hero p{color:var(--muted);font-size:15px;margin-top:8px}
+.step-block{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:28px;margin-bottom:28px;position:relative}
+.step-num{position:absolute;top:-14px;left:24px;background:linear-gradient(135deg,#1a237e,#1565c0);
+  color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800}
+.cmd-block{background:#0d1117;border:1px solid var(--border);border-radius:10px;
+  padding:16px 18px;margin:10px 0;position:relative;font-family:'Consolas','Courier New',monospace;font-size:13px}
+.cmd-block .comment{color:var(--muted)}
+.cmd-block .cmd{color:#79c0ff}
+.cmd-block .string{color:#a5d6ff}
+.cmd-block .kw{color:var(--success)}
+.copy-btn{position:absolute;top:10px;right:12px;background:rgba(0,176,255,.1);border:1px solid rgba(0,176,255,.2);
+  color:var(--accent);padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;transition:.2s;font-family:inherit}
+.copy-btn:hover{background:rgba(0,176,255,.2)}
+.tip-box{background:rgba(0,176,255,.06);border:1px solid rgba(0,176,255,.2);border-radius:10px;
+  padding:14px 16px;margin:12px 0;font-size:13px}
+.tip-box.warn{background:rgba(255,171,0,.06);border-color:rgba(255,171,0,.2)}
+.tip-box.danger{background:rgba(244,67,54,.06);border-color:rgba(244,67,54,.2)}
+.tip-box.success{background:rgba(0,200,83,.06);border-color:rgba(0,200,83,.2)}
+.tip-icon{margin-right:8px;font-size:14px}
+.badge-os{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;
+  font-size:11px;font-weight:700;margin:2px}
+.win{background:rgba(0,176,255,.1);color:var(--accent)}
+.mac{background:rgba(124,77,255,.1);color:var(--purple)}
+.linux{background:rgba(0,200,83,.1);color:var(--success)}
+.os-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.os-tab{padding:6px 16px;border-radius:8px;border:1px solid var(--border);
+  cursor:pointer;font-size:12px;font-weight:600;background:transparent;color:var(--muted);transition:.2s}
+.os-tab.active{background:rgba(0,176,255,.1);border-color:rgba(0,176,255,.3);color:var(--accent)}
+.os-content{display:none}
+.os-content.show{display:block}
+.flow-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0}
+.flow-box{background:#0d1117;border:1px solid var(--border);border-radius:10px;
+  padding:12px 16px;text-align:center;font-size:13px;min-width:120px}
+.flow-box .icon{font-size:22px;margin-bottom:6px;display:block}
+.flow-arrow{color:var(--muted);font-size:18px}
+.check-list li{list-style:none;padding:6px 0;font-size:13px;display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid rgba(48,54,61,.5)}
+.check-list li:last-child{border:none}
+.check-list .ck{width:18px;height:18px;border-radius:4px;background:rgba(0,200,83,.15);
+  color:var(--success);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+table.creds{width:100%;border-collapse:collapse;font-size:13px}
+table.creds th{background:#0d1117;padding:10px 14px;text-align:left;font-size:11px;
+  text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border)}
+table.creds td{padding:10px 14px;border-bottom:1px solid rgba(48,54,61,.4)}
+table.creds code{background:rgba(0,176,255,.08);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:12px}
+.file-tree{font-family:monospace;font-size:13px;background:#0d1117;border:1px solid var(--border);
+  border-radius:10px;padding:20px;line-height:2}
+.file-tree .dir{color:var(--accent)}
+.file-tree .file{color:var(--success)}
+.file-tree .comment{color:var(--muted);font-size:11px}
+.progress-tracker{display:flex;gap:0;margin-bottom:32px;counter-reset:step}
+.pt-step{flex:1;text-align:center;position:relative}
+.pt-step::after{content:'';position:absolute;top:15px;left:50%;width:100%;height:2px;background:var(--border);z-index:0}
+.pt-step:last-child::after{display:none}
+.pt-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:var(--card);
+  color:var(--muted);margin:0 auto;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+.pt-step.done .pt-dot{border-color:var(--success);color:var(--success);background:rgba(0,200,83,.1)}
+.pt-step.active .pt-dot{border-color:var(--accent);color:var(--accent);background:rgba(0,176,255,.1)}
+.pt-label{font-size:10px;color:var(--muted);margin-top:6px;font-weight:600;text-transform:uppercase}
+section{margin-bottom:60px}
+section:target h2{color:var(--accent)}
+@media(max-width:768px){.sidebar{display:none}.main{margin-left:0;padding:24px 16px}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand"><div class="logo"><i class="fa fa-city text-white"></i></div>Setup Guide</div>
+  <div class="nav-section">Getting Started</div>
+  <a href="#overview" class="nav-item"><i class="fa fa-map"></i>Overview</a>
+  <a href="#prereq" class="nav-item"><i class="fa fa-list-check"></i>Prerequisites</a>
+  <div class="nav-section">Installation</div>
+  <a href="#mysql" class="nav-item"><i class="fa fa-database"></i>Step 1 — MySQL</a>
+  <a href="#database" class="nav-item"><i class="fa fa-table"></i>Step 2 — Load Database</a>
+  <a href="#python" class="nav-item"><i class="fa fa-code"></i>Step 3 — Python & Flask</a>
+  <a href="#frontend" class="nav-item"><i class="fa fa-globe"></i>Step 4 — Frontend</a>
+  <a href="#connect" class="nav-item"><i class="fa fa-plug"></i>Step 5 — Connect All</a>
+  <div class="nav-section">Reference</div>
+  <a href="#creds" class="nav-item"><i class="fa fa-key"></i>Login Credentials</a>
+  <a href="#errors" class="nav-item"><i class="fa fa-bug"></i>Common Errors</a>
+  <a href="#quickrun" class="nav-item"><i class="fa fa-bolt"></i>Quick Run Checklist</a>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero">
+    <h1>🏙️ SmartCity — Complete Setup Guide</h1>
+    <p>Step-by-step instructions to install MySQL, load the database, run Flask backend, and open the frontend. <strong>No prior experience needed.</strong></p>
+    <div class="mt-3 d-flex gap-2 flex-wrap">
+      <span class="badge-os win"><i class="fa fa-windows"></i>Windows</span>
+      <span class="badge-os mac"><i class="fa fa-apple"></i>macOS</span>
+      <span class="badge-os linux"><i class="fa fa-linux"></i>Linux</span>
+    </div>
+  </div>
+
+  <!-- PROGRESS TRACKER -->
+  <div class="progress-tracker">
+    <div class="pt-step done"><div class="pt-dot"><i class="fa fa-check"></i></div><div class="pt-label">Download</div></div>
+    <div class="pt-step active"><div class="pt-dot">1</div><div class="pt-label">MySQL</div></div>
+    <div class="pt-step"><div class="pt-dot">2</div><div class="pt-label">DB Load</div></div>
+    <div class="pt-step"><div class="pt-dot">3</div><div class="pt-label">Python</div></div>
+    <div class="pt-step"><div class="pt-dot">4</div><div class="pt-label">Frontend</div></div>
+    <div class="pt-step"><div class="pt-dot">5</div><div class="pt-label">Connect</div></div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <h2><i class="fa fa-map" style="color:var(--accent)"></i>How the Project Works</h2>
+
+    <div class="flow-row">
+      <div class="flow-box"><span class="icon">🌐</span>HTML Frontend<small style="display:block;color:var(--muted);font-size:10px">Port 5500</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><span class="icon">🐍</span>Flask Backend<small style="display:block;color:var(--muted);font-size:10px">Port 5000</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><span class="icon">🗄️</span>MySQL DB<small style="display:block;color:var(--muted);font-size:10px">Port 3306</small></div>
+    </div>
+
+    <div class="tip-box">
+      <i class="fa fa-info-circle tip-icon" style="color:var(--accent)"></i>
+      <strong>Good news:</strong> The frontend also works <strong>without the backend</strong> using built-in demo data. You can open the HTML files directly in a browser and everything will display with charts, tables, and sample data.
+    </div>
+
+    <h3 style="margin-top:20px">Project Files Location</h3>
+    <div class="file-tree">
+      <span class="dir">📁 smartcity/</span><br>
+      &nbsp;&nbsp;<span class="dir">📁 database/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 schema.sql</span> &nbsp;<span class="comment">← Run this FIRST</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 seed_data.sql</span> &nbsp;<span class="comment">← Run this SECOND</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 analytics_queries.sql</span> &nbsp;<span class="comment">← Optional reference</span><br>
+      &nbsp;&nbsp;<span class="dir">📁 backend/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 app.py</span> &nbsp;<span class="comment">← Flask server</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 requirements.txt</span> &nbsp;<span class="comment">← Python packages list</span><br>
+      &nbsp;&nbsp;<span class="dir">📁 frontend/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 index.html</span> &nbsp;<span class="comment">← Open this in browser</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">📁 pages/</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 admin_dashboard.html</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 admin_complaints.html</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 submit_complaint.html</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">📄 complaint_tracker.html</span>
+    </div>
+  </section>
+
+  <!-- PREREQUISITES -->
+  <section id="prereq">
+    <h2><i class="fa fa-list-check" style="color:var(--warning)"></i>Prerequisites — What to Install</h2>
+    <p style="color:var(--muted);margin-bottom:16px">You need these 3 things installed on your computer. Nothing else.</p>
+    <ul class="check-list">
+      <li><div class="ck"><i class="fa fa-check"></i></div><div><strong>MySQL 8.0+</strong> — the database server &nbsp;<a href="https://dev.mysql.com/downloads/installer/" target="_blank" style="color:var(--accent);font-size:12px"><i class="fa fa-download"></i> Download</a></div></li>
+      <li><div class="ck"><i class="fa fa-check"></i></div><div><strong>Python 3.10+</strong> — for the Flask backend &nbsp;<a href="https://www.python.org/downloads/" target="_blank" style="color:var(--accent);font-size:12px"><i class="fa fa-download"></i> Download</a></div></li>
+      <li><div class="ck"><i class="fa fa-check"></i></div><div><strong>A browser</strong> — Chrome, Firefox, Edge (already have this!)</div></li>
+    </ul>
+    <div class="tip-box warn mt-3">
+      <i class="fa fa-triangle-exclamation tip-icon" style="color:var(--warning)"></i>
+      During Python install on Windows → <strong>check "Add Python to PATH"</strong> before clicking Install.
+    </div>
+  </section>
+
+  <!-- STEP 1: MYSQL -->
+  <section id="mysql">
+    <h2><i class="fa fa-database" style="color:var(--danger)"></i>Step 1 — Install & Start MySQL</h2>
+
+    <div class="os-tabs">
+      <button class="os-tab active" onclick="showOS('win1')"><i class="fa fa-windows me-1"></i>Windows</button>
+      <button class="os-tab" onclick="showOS('mac1')"><i class="fa fa-apple me-1"></i>macOS</button>
+      <button class="os-tab" onclick="showOS('lin1')"><i class="fa fa-linux me-1"></i>Linux (Ubuntu)</button>
+    </div>
+
+    <div id="win1" class="os-content show">
+      <h3>Windows — MySQL Installer</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Follow these steps:</p>
+      <ol style="font-size:13px;color:var(--muted);padding-left:20px;line-height:2.2">
+        <li>Go to <a href="https://dev.mysql.com/downloads/installer/" style="color:var(--accent)">mysql.com/downloads/installer</a></li>
+        <li>Download <strong>"MySQL Installer for Windows"</strong> (the ~2MB web installer)</li>
+        <li>Run it → choose <strong>"Developer Default"</strong> setup type → Next → Execute</li>
+        <li>During setup it asks for a <strong>root password</strong> — set it to something you'll remember (e.g. <code style="color:var(--accent)">root123</code>)</li>
+        <li>Finish installation. MySQL service starts automatically.</li>
+      </ol>
+      <div class="tip-box success">
+        <i class="fa fa-check-circle tip-icon" style="color:var(--success)"></i>
+        You'll also get <strong>MySQL Workbench</strong> installed — a visual GUI tool that makes everything easier.
+      </div>
+      <h3 style="margin-top:16px">Verify MySQL is running</h3>
+      <div class="cmd-block">
+        <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+        <span class="comment"># Open Command Prompt (Win+R → type cmd → Enter)</span><br>
+        <span class="cmd">mysql</span> <span class="string">-u root -p</span><br>
+        <span class="comment"># Type your root password when asked</span><br>
+        <span class="comment"># You should see: mysql></span>
+      </div>
+    </div>
+
+    <div id="mac1" class="os-content">
+      <h3>macOS — Using Homebrew (Recommended)</h3>
+      <div class="cmd-block">
+        <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+        <span class="comment"># Install Homebrew first (if not installed)</span><br>
+        /bin/bash -c <span class="string">"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span><br><br>
+        <span class="comment"># Install MySQL</span><br>
+        <span class="cmd">brew install</span> mysql<br><br>
+        <span class="comment"># Start MySQL service</span><br>
+        <span class="cmd">brew services start</span> mysql<br><br>
+        <span class="comment"># Set root password</span><br>
+        <span class="cmd">mysql_secure_installation</span><br>
+        <span class="comment"># Follow prompts, set password to: root123</span>
+      </div>
+    </div>
+
+    <div id="lin1" class="os-content">
+      <h3>Ubuntu / Debian Linux</h3>
+      <div class="cmd-block">
+        <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+        <span class="cmd">sudo apt update</span><br>
+        <span class="cmd">sudo apt install</span> mysql-server -y<br><br>
+        <span class="comment"># Start MySQL</span><br>
+        <span class="cmd">sudo systemctl start</span> mysql<br>
+        <span class="cmd">sudo systemctl enable</span> mysql<br><br>
+        <span class="comment"># Set root password</span><br>
+        <span class="cmd">sudo mysql_secure_installation</span><br>
+        <span class="comment"># Answer Y to all questions, set password to: root123</span><br><br>
+        <span class="comment"># Login to MySQL</span><br>
+        <span class="cmd">sudo mysql</span> -u root -p
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: DATABASE -->
+  <section id="database">
+    <h2><i class="fa fa-table" style="color:var(--purple)"></i>Step 2 — Load the Database</h2>
+    <p style="color:var(--muted);margin-bottom:20px">This creates all 9 tables, procedures, triggers, views, and loads 500 sample complaints.</p>
+
+    <h3>Option A — MySQL Workbench (Easiest, Recommended)</h3>
+    <ol style="font-size:13px;color:var(--muted);padding-left:20px;line-height:2.4">
+      <li>Open <strong>MySQL Workbench</strong> (installed with MySQL)</li>
+      <li>Click on the <strong>Local instance 3306</strong> connection</li>
+      <li>Go to menu: <strong>File → Open SQL Script</strong></li>
+      <li>Open <code style="color:var(--accent)">database/schema.sql</code> → click the <strong>⚡ Execute</strong> button (or press Ctrl+Shift+Enter)</li>
+      <li>Wait for it to finish (you'll see green checkmarks)</li>
+      <li>Again: <strong>File → Open SQL Script</strong> → open <code style="color:var(--accent)">database/seed_data.sql</code> → Execute</li>
+      <li>Done! You now have the full database with 500 complaints.</li>
+    </ol>
+    <div class="tip-box success">
+      <i class="fa fa-check-circle tip-icon" style="color:var(--success)"></i>
+      <strong>Verify it worked:</strong> In Workbench, run this query: <code style="color:var(--accent)">SELECT COUNT(*) FROM smartcity_db.complaints;</code> — it should return <strong>500</strong>.
+    </div>
+
+    <h3 style="margin-top:20px">Option B — Command Line</h3>
+    <div class="cmd-block">
+      <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+      <span class="comment"># First navigate to your smartcity folder</span><br>
+      <span class="comment"># Windows example:</span><br>
+      <span class="cmd">cd</span> <span class="string">C:\Users\YourName\Downloads\smartcity</span><br><br>
+      <span class="comment"># Run schema (creates tables, triggers, views)</span><br>
+      <span class="cmd">mysql</span> -u root -p &lt; database/schema.sql<br><br>
+      <span class="comment"># Run seed data (100 users + 500 complaints)</span><br>
+      <span class="cmd">mysql</span> -u root -p smartcity_db &lt; database/seed_data.sql
+    </div>
+    <div class="tip-box warn">
+      <i class="fa fa-triangle-exclamation tip-icon" style="color:var(--warning)"></i>
+      If you get "mysql is not recognized" on Windows, find MySQL in <code>C:\Program Files\MySQL\MySQL Server 8.0\bin\</code> and add it to your PATH, or use MySQL Workbench instead.
+    </div>
+
+    <h3 style="margin-top:20px">Verify Database Loaded Correctly</h3>
+    <div class="cmd-block">
+      <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+      <span class="comment"># Login to MySQL</span><br>
+      <span class="cmd">mysql</span> -u root -p<br><br>
+      <span class="comment"># Run these checks</span><br>
+      USE smartcity_db;<br>
+      SHOW TABLES;<br>
+      SELECT COUNT(*) FROM complaints;<br>
+      SELECT COUNT(*) FROM users;<br>
+      SELECT * FROM vw_dept_performance LIMIT 3;
+    </div>
+    <div class="tip-box success">
+      <i class="fa fa-check-circle tip-icon" style="color:var(--success)"></i>
+      Expected: <strong>9 tables</strong>, <strong>500 complaints</strong>, <strong>110 users</strong>
+    </div>
+  </section>
+
+  <!-- STEP 3: PYTHON -->
+  <section id="python">
+    <h2><i class="fa fa-code" style="color:var(--success)"></i>Step 3 — Setup Python & Flask Backend</h2>
+
+    <h3>3a. Check Python is Installed</h3>
+    <div class="cmd-block">
+      <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+      <span class="comment"># Check Python version (need 3.10+)</span><br>
+      <span class="cmd">python</span> --version<br>
+      <span class="comment"># OR on some systems:</span><br>
+      <span class="cmd">python3</span> --version<br>
+      <span class="comment"># You should see: Python 3.10.x or higher</span>
+    </div>
+
+    <h3 style="margin-top:20px">3b. Navigate to Backend Folder</h3>
+    <div class="os-tabs">
+      <button class="os-tab active" onclick="showOS('pywin')"><i class="fa fa-windows me-1"></i>Windows</button>
+      <button class="os-tab" onclick="showOS('pymac')"><i class="fa fa-apple me-1"></i>macOS / Linux</button>
+    </div>
+    <div id="pywin" class="os-content show">
+      <div class="cmd-block">
+        <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+        <span class="comment"># Open Command Prompt, navigate to backend folder</span><br>
+        <span class="cmd">cd</span> C:\Users\YourName\Downloads\smartcity\backend<br><br>
+        <span class="comment"># Create a virtual environment (keeps packages isolated)</span><br>
+        <span class="cmd">python</span> -m venv venv<br><br>
+        <span class="comment"># Activate virtual environment</span><br>
+        venv\Scripts\activate<br>
+        <span class="comment"># Your prompt changes to: (venv) C:\...></span><br><br>
+        <span class="comment"># Install all required packages</span><br>
+        <span class="cmd">pip</span> install -r requirements.txt<br>
+        <span class="comment"># This installs: flask, flask-cors, mysql-connector-python, bcrypt</span>
+      </div>
+    </div>
+    <div id="pymac" class="os-content">
+      <div class="cmd-block">
+        <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+        <span class="comment"># Navigate to backend folder</span><br>
+        <span class="cmd">cd</span> ~/Downloads/smartcity/backend<br><br>
+        <span class="comment"># Create virtual environment</span><br>
+        <span class="cmd">python3</span> -m venv venv<br><br>
+        <span class="comment"># Activate it</span><br>
+        <span class="cmd">source</span> venv/bin/activate<br>
+        <span class="comment"># Prompt changes to: (venv) user@machine $</span><br><br>
+        <span class="comment"># Install packages</span><br>
+        <span class="cmd">pip</span> install -r requirements.txt
+      </div>
+    </div>
+
+    <h3 style="margin-top:20px">3c. Configure Database Password in app.py</h3>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Open <code style="color:var(--accent)">backend/app.py</code> in any text editor (Notepad, VS Code, etc.) and find this section near the top:</p>
+    <div class="cmd-block">
+      <span class="comment"># Find this block around line 20 in app.py:</span><br><br>
+      DB_CONFIG = {<br>
+      &nbsp;&nbsp;<span class="string">'host'</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">'localhost'</span>,<br>
+      &nbsp;&nbsp;<span class="string">'port'</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3306,<br>
+      &nbsp;&nbsp;<span class="string">'user'</span>:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">'root'</span>,<br>
+      &nbsp;&nbsp;<span class="string">'password'</span>:&nbsp;<span class="kw">'your_password'</span>,  <span class="comment">← CHANGE THIS to your MySQL root password</span><br>
+      &nbsp;&nbsp;<span class="string">'database'</span>:&nbsp;<span class="string">'smartcity_db'</span>,<br>
+      }
+    </div>
+    <div class="tip-box danger">
+      <i class="fa fa-key tip-icon" style="color:var(--danger)"></i>
+      Change <code>'your_password'</code> to whatever password you set for MySQL root in Step 1 (e.g. <code>'root123'</code>). Save the file.
+    </div>
+
+    <h3 style="margin-top:20px">3d. Start the Flask Server</h3>
+    <div class="cmd-block">
+      <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+      <span class="comment"># Make sure you're in the backend folder with venv active</span><br>
+      <span class="cmd">python</span> app.py<br><br>
+      <span class="comment"># You should see:</span><br>
+      <span class="kw"> * Running on http://127.0.0.1:5000</span><br>
+      <span class="kw"> * Debug mode: on</span>
+    </div>
+    <div class="tip-box success">
+      <i class="fa fa-check-circle tip-icon" style="color:var(--success)"></i>
+      <strong>Test it:</strong> Open your browser and go to <a href="http://localhost:5000/api/health" style="color:var(--accent)" target="_blank">http://localhost:5000/api/health</a> — you should see <code style="color:var(--success)">{"success": true, "data": {"db": "connected"}}</code>
+    </div>
+    <div class="tip-box warn" style="margin-top:10px">
+      <i class="fa fa-triangle-exclamation tip-icon" style="color:var(--warning)"></i>
+      <strong>Keep this terminal window open!</strong> Closing it stops the Flask server. Open a new terminal for other commands.
+    </div>
+  </section>
+
+  <!-- STEP 4: FRONTEND -->
+  <section id="frontend">
+    <h2><i class="fa fa-globe" style="color:var(--accent)"></i>Step 4 — Run the Frontend</h2>
+
+    <h3>Option A — Just Open in Browser (Simplest)</h3>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">The frontend has demo data built in. No server needed.</p>
+    <ol style="font-size:13px;color:var(--muted);padding-left:20px;line-height:2.4">
+      <li>Open your file explorer / Finder</li>
+      <li>Navigate to the <code style="color:var(--accent)">smartcity/frontend/</code> folder</li>
+      <li>Double-click <code style="color:var(--accent)">index.html</code></li>
+      <li>It opens in your browser — <strong>done!</strong></li>
+    </ol>
+
+    <h3 style="margin-top:20px">Option B — VS Code Live Server (Better, Recommended)</h3>
+    <ol style="font-size:13px;color:var(--muted);padding-left:20px;line-height:2.4">
+      <li>Install <a href="https://code.visualstudio.com/" style="color:var(--accent)" target="_blank">VS Code</a> if not already installed</li>
+      <li>Install the <strong>"Live Server"</strong> extension (search in Extensions tab)</li>
+      <li>Open the <code style="color:var(--accent)">smartcity/frontend/</code> folder in VS Code</li>
+      <li>Right-click <code>index.html</code> → <strong>"Open with Live Server"</strong></li>
+      <li>Browser opens at <code style="color:var(--accent)">http://127.0.0.1:5500</code></li>
+    </ol>
+    <div class="tip-box">
+      <i class="fa fa-info-circle tip-icon" style="color:var(--accent)"></i>
+      Live Server is better because it auto-reloads when you edit files, and CORS works correctly with Flask.
+    </div>
+
+    <h3 style="margin-top:20px">Option C — Python Simple HTTP Server</h3>
+    <div class="cmd-block">
+      <button class="copy-btn" onclick="copyCmd(this)"><i class="fa fa-copy me-1"></i>Copy</button>
+      <span class="comment"># Open a NEW terminal, navigate to frontend folder</span><br>
+      <span class="cmd">cd</span> smartcity/frontend<br><br>
+      <span class="comment"># Start Python HTTP server</span><br>
+      <span class="cmd">python</span> -m http.server 5500<br><br>
+      <span class="comment"># Open browser at:</span><br>
+      <span class="kw">http://localhost:5500</span>
+    </div>
+  </section>
+
+  <!-- STEP 5: CONNECT -->
+  <section id="connect">
+    <h2><i class="fa fa-plug" style="color:var(--warning)"></i>Step 5 — Connect Frontend to Backend</h2>
+    <p style="color:var(--muted);margin-bottom:16px">To use live MySQL data instead of demo data, make this one change in the HTML files:</p>
+
+    <div class="cmd-block">
+      <span class="comment"># In each HTML file (admin_dashboard.html, etc.), find this line:</span><br>
+      <span class="kw">const DEMO_MODE = true;</span>  <span class="comment">← change to false</span><br><br>
+      <span class="comment"># And make sure this matches your Flask port:</span><br>
+      <span class="kw">const API = 'http://localhost:5000/api';</span>
+    </div>
+
+    <h3 style="margin-top:20px">What Each Running Service Does</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
+      <div class="step-block" style="padding:16px">
+        <div style="font-size:22px;margin-bottom:8px">🗄️</div>
+        <div style="font-weight:700;font-size:13px">MySQL (Port 3306)</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Stores all data. Always running in background.</div>
+      </div>
+      <div class="step-block" style="padding:16px">
+        <div style="font-size:22px;margin-bottom:8px">🐍</div>
+        <div style="font-weight:700;font-size:13px">Flask (Port 5000)</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Run: <code style="color:var(--accent)">python app.py</code> in backend folder</div>
+      </div>
+      <div class="step-block" style="padding:16px">
+        <div style="font-size:22px;margin-bottom:8px">🌐</div>
+        <div style="font-weight:700;font-size:13px">Frontend (Port 5500)</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Open index.html in browser or use Live Server</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CREDENTIALS -->
+  <section id="creds">
+    <h2><i class="fa fa-key" style="color:var(--warning)"></i>Login Credentials (Demo)</h2>
+    <table class="creds">
+      <thead><tr><th>Role</th><th>Email</th><th>Password</th><th>Access</th></tr></thead>
+      <tbody>
+        <tr><td>🔴 Admin</td><td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5d3c393034331d2e303c2f293e342924733a322b">[email&#160;protected]</a></code></td><td><code>Admin@123</code></td><td>Full dashboard, all analytics</td></tr>
+        <tr><td>🟡 Officer (Eng)</td><td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="365358510776455b574442555f424f18515940">[email&#160;protected]</a></code></td><td><code>Admin@123</code></td><td>Engineering dept complaints</td></tr>
+        <tr><td>🟡 Officer (San)</td><td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="85f6e4ebb4c5f6e8e4f7f1e6ecf1fcabe2eaf3">[email&#160;protected]</a></code></td><td><code>Admin@123</code></td><td>Sanitation dept complaints</td></tr>
+        <tr><td>🟢 Citizen</td><td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a4c5c5d6c5d28ad7ccc5d6c9c5e4c3c9c5cdc88ac7cbc9">[email&#160;protected]</a></code></td><td><code>Admin@123</code></td><td>Submit & track complaints</td></tr>
+        <tr><td>🟢 Citizen</td><td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1b6b6972627a356b7a6f7e775b7c767a727735787476">[email&#160;protected]</a></code></td><td><code>Admin@123</code></td><td>Submit & track complaints</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ERRORS -->
+  <section id="errors">
+    <h2><i class="fa fa-bug" style="color:var(--danger)"></i>Common Errors & Fixes</h2>
+
+    <div class="step-block">
+      <div class="step-num">!</div>
+      <h3 style="color:var(--danger)">❌ "Access denied for user 'root'@'localhost'"</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Wrong MySQL password in app.py</p>
+      <div class="cmd-block">
+        <span class="comment"># Fix: Open app.py, find DB_CONFIG, change password to match what you set during MySQL install</span><br>
+        <span class="string">'password'</span>: <span class="kw">'your_actual_password_here'</span>,
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-num">!</div>
+      <h3 style="color:var(--danger)">❌ "ModuleNotFoundError: No module named 'flask'"</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Packages not installed, or virtual environment not activated</p>
+      <div class="cmd-block">
+        <span class="comment"># Make sure venv is activated first, then:</span><br>
+        <span class="cmd">pip</span> install -r requirements.txt
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-num">!</div>
+      <h3 style="color:var(--danger)">❌ "Table 'smartcity_db.complaints' doesn't exist"</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Database not loaded yet</p>
+      <div class="cmd-block">
+        <span class="comment"># Run the SQL files in MySQL Workbench in this exact order:</span><br>
+        1. schema.sql &nbsp;&nbsp;<span class="comment">← creates the database and tables</span><br>
+        2. seed_data.sql <span class="comment">← populates with sample data</span>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-num">!</div>
+      <h3 style="color:var(--danger)">❌ "CORS error" in browser console</h3>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Frontend and backend on different origins</p>
+      <div class="cmd-block">
+        <span class="comment"># Use Live Server (port 5500) not file:// protocol</span><br>
+        <span class="comment"># The Flask app already allows localhost:5500 in CORS settings</span>
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-num">!</div>
+      <h3 style="color:var(--danger)">❌ "Port 5000 is already in use"</h3>
+      <div class="cmd-block">
+        <span class="comment"># Windows: Kill process on port 5000</span><br>
+        <span class="cmd">netstat</span> -ano | findstr :5000<br>
+        <span class="cmd">taskkill</span> /PID &lt;number_shown&gt; /F<br><br>
+        <span class="comment"># OR change port in app.py last line:</span><br>
+        app.run(debug=True, host=<span class="string">'0.0.0.0'</span>, port=<span class="kw">5001</span>)
+      </div>
+    </div>
+
+    <div class="step-block">
+      <div class="step-num">!</div>
+      <h3 style="color:var(--danger)">❌ seed_data.sql fails with procedure error</h3>
+      <div class="cmd-block">
+        <span class="comment"># In MySQL Workbench, before running seed_data.sql, run:</span><br>
+        SET GLOBAL log_bin_trust_function_creators = 1;<br>
+        <span class="comment"># This allows stored procedures to work</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK CHECKLIST -->
+  <section id="quickrun">
+    <h2><i class="fa fa-bolt" style="color:var(--accent)"></i>Quick Run Checklist (Every Time)</h2>
+    <p style="color:var(--muted);margin-bottom:16px">After initial setup, here's what to do each time you want to run the project:</p>
+
+    <ul class="check-list">
+      <li><div class="ck"><i class="fa fa-check"></i></div><div><strong>1.</strong> MySQL is running (starts automatically on Windows/Mac after installation)</div></li>
+      <li><div class="ck"><i class="fa fa-check"></i></div><div><strong>2.</strong> Open terminal → navigate to <code style="color:var(--accent)">smartcity/backend/</code></div></li>
+      <li><div class="ck"><i class="fa fa-check"></i></div><div><strong>3.</strong> Activate venv: <code style="color:var(--accent)">venv\Scripts\activate</code> (Win) or <code style="color:var(--accent)">source venv/bin/activate</code> (Mac/Linux)</div></li>
+      <li><div class="ck"><i class="fa fa-check"></i></div><div><strong>4.</strong> Start Flask: <code style="color:var(--accent)">python app.py</code> — leave this terminal open</div></li>
+      <li><div class="ck"><i class="fa fa-check"></i></div><div><strong>5.</strong> Open <code style="color:var(--accent)">frontend/index.html</code> in browser (or use Live Server)</div></li>
+      <li><div class="ck"><i class="fa fa-check"></i></div><div><strong>6.</strong> Login with <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="157471787c7b556678746761767c616c3b727a63">[email&#160;protected]</a> / Admin@123 → see the dashboard!</div></li>
+    </ul>
+
+    <div class="tip-box success" style="margin-top:20px">
+      <i class="fa fa-graduation-cap tip-icon" style="color:var(--success)"></i>
+      <strong>For college demo without backend:</strong> Just open <code>index.html</code> → login → navigate to <code>pages/admin_dashboard.html</code>. All charts and analytics display with built-in demo data. No MySQL or Flask needed for the demo!
+    </div>
+  </section>
+
+</main>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+function showOS(id){
+  const prefix = id.replace(/[0-9]/g,'').replace('win','win').replace('mac','mac').replace('lin','lin').replace('py','py');
+  document.querySelectorAll('.os-content').forEach(el=>{
+    if(el.id.startsWith(prefix.slice(0,2))||el.id===id) el.classList.remove('show');
+  });
+  document.getElementById(id).classList.add('show');
+
+  // Update active tab
+  const parent = document.getElementById(id).closest('section')||document.body;
+  parent.querySelectorAll('.os-tab').forEach(btn=>{
+    btn.classList.toggle('active',

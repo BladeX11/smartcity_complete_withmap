@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartCity Analytics | Admin Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --primary:#6d28d9; --secondary:#7c3aed; --accent:#22d3ee;
+    --success:#22c55e; --warning:#f59e0b; --danger:#f43f5e;
+    --dark-bg:#070b16; --card-bg:#111827; --card-border:#24304a;
+    --text-primary:#eef4ff; --text-muted:#9fb0ca;
+    --gradient:linear-gradient(135deg,#6d28d9 0%,#7c3aed 45%,#0ea5e9 100%);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:radial-gradient(900px 500px at 10% -10%,rgba(34,211,238,.14),transparent 60%),radial-gradient(900px 520px at 95% -8%,rgba(109,40,217,.2),transparent 58%),var(--dark-bg);color:var(--text-primary);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+
+  /* SIDEBAR */
+  .sidebar{width:260px;background:linear-gradient(180deg,#0d1527,#0a1220);border-right:1px solid var(--card-border);
+    height:100vh;position:fixed;top:0;left:0;z-index:100;display:flex;flex-direction:column;
+    transition:.3s}
+  .sidebar-brand{padding:20px 24px;border-bottom:1px solid var(--card-border)}
+  .sidebar-brand .logo{width:40px;height:40px;background:var(--gradient);border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:18px}
+  .brand-text{margin-left:12px}
+  .brand-text h6{font-weight:700;font-size:14px;color:var(--text-primary);margin:0}
+  .brand-text span{font-size:11px;color:var(--accent)}
+  .nav-section{padding:16px 12px 4px;font-size:10px;font-weight:600;
+    letter-spacing:1px;color:var(--text-muted);text-transform:uppercase}
+  .nav-link{display:flex;align-items:center;padding:10px 12px;border-radius:10px;
+    color:var(--text-muted);text-decoration:none;transition:.2s;margin:2px 0}
+  .nav-link:hover,.nav-link.active{background:rgba(34,211,238,.1);color:var(--accent)}
+  .nav-link.active{box-shadow:inset 3px 0 0 var(--accent)}
+  .nav-link i{width:20px;margin-right:10px;font-size:14px}
+  .nav-link .badge-count{margin-left:auto;background:var(--danger);color:#fff;
+    font-size:10px;padding:2px 6px;border-radius:10px}
+
+  /* MAIN */
+  .main-content{margin-left:260px;min-height:100vh;padding:24px}
+  .topbar{background:linear-gradient(180deg,rgba(17,24,39,.95),rgba(10,14,28,.95));border:1px solid var(--card-border);border-radius:14px;
+    padding:16px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 14px 36px rgba(34,211,238,.08)}
+  .topbar-left h4{font-weight:700;margin:0;font-size:18px}
+  .topbar-left p{color:var(--text-muted);font-size:13px;margin:0}
+
+  /* KPI CARDS */
+  .kpi-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;
+    padding:24px;position:relative;overflow:hidden;transition:.3s;cursor:default}
+  .kpi-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 14px 32px rgba(34,211,238,.12)}
+  .kpi-card .kpi-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;
+    justify-content:center;font-size:22px;margin-bottom:16px}
+  .kpi-card .kpi-value{font-size:32px;font-weight:800;line-height:1}
+  .kpi-card .kpi-label{font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:500;
+    text-transform:uppercase;letter-spacing:.5px}
+  .kpi-card .kpi-change{font-size:12px;margin-top:8px}
+  .kpi-card .bg-glow{position:absolute;top:-20px;right:-20px;width:100px;height:100px;
+    border-radius:50%;opacity:.05}
+  .kpi-blue  .kpi-icon{background:rgba(0,176,255,.15);color:var(--accent)}
+  .kpi-blue  .bg-glow{background:var(--accent)}
+  .kpi-green .kpi-icon{background:rgba(0,200,83,.15);color:var(--success)}
+  .kpi-green .bg-glow{background:var(--success)}
+  .kpi-red   .kpi-icon{background:rgba(244,67,54,.15);color:var(--danger)}
+  .kpi-red   .bg-glow{background:var(--danger)}
+  .kpi-amber .kpi-icon{background:rgba(255,171,0,.15);color:var(--warning)}
+  .kpi-amber .bg-glow{background:var(--warning)}
+
+  /* CHART CARDS */
+  .chart-card{background:linear-gradient(180deg,rgba(17,24,39,.96),rgba(10,14,28,.96));border:1px solid var(--card-border);border-radius:16px;padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .chart-card:hover{border-color:rgba(34,211,238,.45)}
+  .chart-card .card-title{font-weight:700;font-size:15px;margin-bottom:4px}
+  .chart-card .card-sub{font-size:12px;color:var(--text-muted);margin-bottom:20px}
+
+  /* TABLE */
+  .data-table{width:100%;border-collapse:collapse}
+  .data-table th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;
+    color:var(--text-muted);padding:12px 16px;border-bottom:1px solid var(--card-border);
+    text-align:left}
+  .data-table td{padding:12px 16px;border-bottom:1px solid rgba(48,54,61,.5);font-size:13px}
+  .data-table tr:hover td{background:rgba(34,211,238,.06)}
+
+  /* BADGES */
+  .status-badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+  .badge-pending     {background:rgba(255,171,0,.15);color:var(--warning)}
+  .badge-in_progress {background:rgba(0,176,255,.15);color:var(--accent)}
+  .badge-resolved    {background:rgba(0,200,83,.15);color:var(--success)}
+  .badge-closed      {background:rgba(139,148,158,.15);color:var(--text-muted)}
+  .badge-rejected    {background:rgba(244,67,54,.15);color:var(--danger)}
+  .priority-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+
+  /* HOTSPOT INDICATOR */
+  .hotspot-bar{height:6px;border-radius:3px;background:#30363d;overflow:hidden;margin-top:8px}
+  .hotspot-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--success),var(--danger))}
+
+  /* ANIMATIONS */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .fade-up{animation:fadeUp .5s ease forwards}
+  .loading-spinner{display:flex;align-items:center;justify-content:center;height:200px;
+    color:var(--text-muted);flex-direction:column;gap:12px}
+  .spinner{width:32px;height:32px;border:3px solid var(--card-border);
+    border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:var(--card-bg)}
+  ::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+
+  @media(max-width:768px){.sidebar{transform:translateX(-100%)}.main-content{margin-left:0}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-brand d-flex align-items-center">
+    <div class="logo"><i class="fa-solid fa-city text-white"></i></div>
+    <div class="brand-text ms-2">
+      <h6>SmartCity</h6>
+      <span>Complaint Analytics</span>
+    </div>
+  </div>
+  <div class="flex-grow-1 overflow-auto py-2">
+    <div class="nav-section">Overview</div>
+    <a href="admin_dashboard.html" class="nav-link active"><i class="fa fa-chart-line"></i>Analytics Dashboard</a>
+    <a href="admin_complaints.html" class="nav-link"><i class="fa fa-list-check"></i>Complaint Management <span class="badge-count" id="pendingBadge">—</span></a>
+    <div class="nav-section">Management</div>
+    <a href="admin_complaints.html" class="nav-link"><i class="fa fa-building"></i>Department Panel</a>
+    <a href="city_map.html" class="nav-link"><i class="fa fa-map-marked-alt"></i>Hotspot Map</a>
+    <a href="admin_complaints.html" class="nav-link"><i class="fa fa-clock"></i>SLA Tracker</a>
+    <div class="nav-section">Reports</div>
+    <a href="admin_complaints.html" class="nav-link"><i class="fa fa-file-pdf"></i>Export Reports</a>
+    <a href="admin_complaints.html" class="nav-link"><i class="fa fa-cog"></i>Settings</a>
+    <div class="nav-section">User</div>
+<a href="../index.html" class="nav-link">
+  <i class="fa fa-right-from-bracket"></i> Logout
+</a>
+  </div>
+  <div class="px-3 py-3 border-top" style="border-color:var(--card-border)!important">
+    <div class="d-flex align-items-center gap-2">
+      <div style="width:32px;height:32px;background:var(--gradient);border-radius:8px;
+        display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">A</div>
+      <div>
+        <div style="font-size:12px;font-weight:600">Admin User</div>
+        <div style="font-size:10px;color:var(--text-muted)"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e9888d848087a99a84889b9d8a809d90c78e869f">[email&#160;protected]</a></div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<main class="main-content">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h4><i class="fa fa-chart-pie me-2" style="color:var(--accent)"></i>Analytics Dashboard</h4>
+      <p id="dashDate">Loading...</p>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-sm" style="background:rgba(0,176,255,.1);color:var(--accent);border:1px solid rgba(0,176,255,.3)" onclick="refreshDashboard()">
+        <i class="fa fa-sync-alt me-1"></i>Refresh
+      </button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+        <i class="fa fa-download me-1"></i>Export
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI ROW -->
+  <div class="row g-3 mb-4 fade-up" id="kpiRow">
+    <div class="col-6 col-xl-3"><div class="kpi-card kpi-blue" id="kpi-total">
+      <div class="bg-glow"></div>
+      <div class="kpi-icon"><i class="fa fa-inbox"></i></div>
+      <div class="kpi-value" id="kv-total">—</div>
+      <div class="kpi-label">Total Complaints</div>
+      <div class="kpi-change text-info" id="kv-today">— today</div>
+    </div></div>
+    <div class="col-6 col-xl-3"><div class="kpi-card kpi-amber">
+      <div class="bg-glow"></div>
+      <div class="kpi-icon"><i class="fa fa-hourglass-half"></i></div>
+      <div class="kpi-value" id="kv-pending">—</div>
+      <div class="kpi-label">Pending</div>
+      <div class="kpi-change text-warning" id="kv-critical">— critical</div>
+    </div></div>
+    <div class="col-6 col-xl-3"><div class="kpi-card kpi-green">
+      <div class="bg-glow"></div>
+      <div class="kpi-icon"><i class="fa fa-check-circle"></i></div>
+      <div class="kpi-value" id="kv-resolved">—</div>
+      <div class="kpi-label">Resolved</div>
+      <div class="kpi-change text-success" id="kv-reso-pct">—% rate</div>
+    </div></div>
+    <div class="col-6 col-xl-3"><div class="kpi-card kpi-red">
+      <div class="bg-glow"></div>
+      <div class="kpi-icon"><i class="fa fa-fire"></i></div>
+      <div class="kpi-value" id="kv-hotspot">—</div>
+      <div class="kpi-label">Hotspot Complaints</div>
+      <div class="kpi-change text-danger" id="kv-avg-hrs">— avg hrs</div>
+    </div></div>
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="row g-3 mb-4">
+    <!-- Monthly Trend -->
+    <div class="col-lg-8">
+      <div class="chart-card h-100">
+        <div class="card-title">Monthly Complaint Trends</div>
+        <div class="card-sub">Submitted vs Resolved over the last 12 months</div>
+        <canvas id="trendChart" height="110"></canvas>
+      </div>
+    </div>
+    <!-- Category Donut -->
+    <div class="col-lg-4">
+      <div class="chart-card h-100">
+        <div class="card-title">Complaints by Category</div>
+        <div class="card-sub">Distribution across issue types</div>
+        <canvas id="categoryChart" height="200"></canvas>
+        <div id="catLegend" class="mt-3" style="font-size:12px;max-height:150px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="row g-3 mb-4">
+    <!-- Dept Performance -->
+    <div class="col-lg-6">
+      <div class="chart-card">
+        <div class="card-title">Department Performance</div>
+        <div class="card-sub">Resolution rate by department (%)</div>
+        <canvas id="deptChart" height="200"></canvas>
+      </div>
+    </div>
+    <!-- SLA Compliance -->
+    <div class="col-lg-6">
+      <div class="chart-card">
+        <div class="card-title">SLA Compliance by Priority</div>
+        <div class="card-sub">% of complaints resolved within target time</div>
+        <canvas id="slaChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Hotspots + High Priority -->
+  <div class="row g-3 mb-4">
+    <!-- Hotspot Locations -->
+    <div class="col-lg-5">
+      <div class="chart-card">
+        <div class="card-title"><i class="fa fa-fire me-2" style="color:var(--danger)"></i>Hotspot Locations</div>
+        <div class="card-sub">Areas with 10+ complaints in last 30 days</div>
+        <div id="hotspotList">
+          <div class="loading-spinner"><div class="spinner"></div><span>Detecting hotspots...</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- High Priority Pending -->
+    <div class="col-lg-7">
+      <div class="chart-card">
+        <div class="card-title"><i class="fa fa-triangle-exclamation me-2" style="color:var(--warning)"></i>High Priority Pending</div>
+        <div class="card-sub">Critical & High priority complaints awaiting resolution</div>
+        <div style="overflow-x:auto;max-height:320px;overflow-y:auto">
+          <table class="data-table" id="priorityTable">
+            <thead>
+              <tr>
+                <th>Code</th><th>Issue</th><th>Priority</th>
+                <th>Area</th><th>Dept</th><th>Age</th><th>SLA</th>
+              </tr>
+            </thead>
+            <tbody id="priorityBody">
+              <tr><td colspan="7" class="text-center py-4">
+                <div class="loading-spinner"><div class="spinner"></div></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dept Performance Table -->
+  <div class="chart-card mb-4">
+    <div class="card-title"><i class="fa fa-building me-2" style="color:var(--accent)"></i>Department Performance Overview</div>
+    <div class="card-sub">Complete analytics for all city departments</div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
+          <tr><th>Department</th><th>Head</th><th>Assigned</th><th>Resolved</th>
+              <th>Pending</th><th>Avg Time</th><th>Resolution Rate</th></tr>
+        </thead>
+        <tbody id="deptTableBody">
+          <tr><td colspan="7" class="text-center py-4">
+            <div class="loading-spinner"><div class="spinner"></div></div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script>
+const API = 'http://127.0.0.1:5000/api';
+const DEMO_MODE = false;
+const toNum = (v, d = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : d;
+};
+document.addEventListener("DOMContentLoaded", function() {
+   if (DEMO_MODE) {
+      refreshDashboard();
+   } else {
+      loadLiveData();
+   }
+});
+async function loadLiveData(){
+  try {
+    const res = await fetch(API + "/analytics/kpi", { credentials:'include' });
+    if(!res.ok) throw new Error(`KPI fetch failed: ${res.status}`);
+    const json = await res.json();
+
+    if(!json?.success || !json?.data) throw new Error('Invalid KPI response');
+    const d = json.data;
+    demo.kpi = d;
+
+    // update KPIs from backend
+    document.getElementById('kv-total').textContent    = d.total_complaints;
+    document.getElementById('kv-today').textContent    = `+${d.new_today} today · ${d.new_this_week} this week`;
+    document.getElementById('kv-pending').textContent  = d.pending;
+    document.getElementById('kv-critical').textContent = `${d.critical} critical`;
+    document.getElementById('kv-resolved').textContent = d.resolved;
+    document.getElementById('kv-reso-pct').textContent = `${d.resolution_pct}% rate`;
+    document.getElementById('kv-hotspot').textContent  = d.hotspot_complaints;
+    document.getElementById('kv-avg-hrs').textContent  = `${d.avg_resolution_hrs}h avg resolution`;
+
+    // now fetch chart data
+    await loadLiveCharts();
+
+  } catch(err){
+    console.error("Live analytics error:", err);
+    refreshDashboard();
+  }
+}
+async function loadLiveCharts(){
+  const fetchApi = async (path) => {
+    try{
+      const r = await fetch(API + path, { credentials:'include' });
+      if(!r.ok) return null;
+      const j = await r.json();
+      return j?.success ? (j.data || []) : null;
+    }catch(_e){
+      return null;
+    }
+  };
+
+  const [monthly, category, dept, sla, hotspots, priority] = await Promise.all([
+    fetchApi("/analytics/monthly-trend"),
+    fetchApi("/analytics/by-category"),
+    fetchApi("/analytics/department-performance"),
+    fetchApi("/analytics/sla"),
+    fetchApi("/analytics/hotspots"),
+    fetchApi("/analytics/high-priority-pending")
+  ]);
+
+  // push backend data into demo structure
+  if(monthly) demo.monthly = monthly;
+  if(category) demo.categories = category;
+  if(dept) demo.departments = dept;
+  if(sla) demo.sla = sla;
+  if(hotspots) demo.hotspots = hotspots;
+  if(priority) demo.highPriority = priority;
+
+  refreshDashboard(); // reuse existing render functions
+}
+
+// DEMO DATA
+const demo = {
+  kpi: {total_complaints:523,pending:124,in_progress:58,resolved:341,
+        critical:17,hotspot_complaints:38,avg_resolution_hrs:31.4,new_today:12,new_this_week:67,resolution_pct:65.2},
+  monthly: [
+    {label:'Sep 2024',total:38,resolved:24,pending:14,critical:3,avg_hrs:28},
+    {label:'Oct 2024',total:45,resolved:31,pending:14,critical:4,avg_hrs:25},
+    {label:'Nov 2024',total:52,resolved:37,pending:15,critical:5,avg_hrs:30},
+    {label:'Dec 2024',total:41,resolved:28,pending:13,critical:2,avg_hrs:26},
+    {label:'Jan 2025',total:63,resolved:42,pending:21,critical:7,avg_hrs:33},
+    {label:'Feb 2025',total:58,resolved:39,pending:19,critical:6,avg_hrs:29},
+    {label:'Mar 2025',total:72,resolved:51,pending:21,critical:8,avg_hrs:27},
+    {label:'Apr 2025',total:67,resolved:44,pending:23,critical:5,avg_hrs:32},
+    {label:'May 2025',total:79,resolved:55,pending:24,critical:9,avg_hrs:24},
+    {label:'Jun 2025',total:84,resolved:59,pending:25,critical:11,avg_hrs:22},
+    {label:'Jul 2025',total:91,resolved:64,pending:27,critical:10,avg_hrs:28},
+    {label:'Aug 2025',total:88,resolved:61,pending:27,critical:12,avg_hrs:31}
+  ],
+  categories: [
+    {cat_name:'Pothole/Road',total:89,pct:17.0},{cat_name:'Garbage',total:76,pct:14.5},
+    {cat_name:'Water Supply',total:68,pct:13.0},{cat_name:'Street Light',total:61,pct:11.7},
+    {cat_name:'Sewage',total:54,pct:10.3},{cat_name:'Electricity',total:47,pct:9.0},
+    {cat_name:'Stray Animals',total:38,pct:7.3},{cat_name:'Others',total:90,pct:17.2}
+  ],
+  departments:[
+    {dept_name:'Engineering',dept_code:'ENG',head_name:'Rajesh Kumar',total:142,resolved:98,pending:31,avg_hrs:29.2,resolution_pct:69.0},
+    {dept_name:'Sanitation',dept_code:'SAN',head_name:'Priya Mehta',total:121,resolved:89,pending:24,avg_hrs:18.5,resolution_pct:73.6},
+    {dept_name:'Water & Utilities',dept_code:'UTIL',head_name:'Amit Sharma',total:98,resolved:61,pending:28,avg_hrs:22.1,resolution_pct:62.2},
+    {dept_name:'Electricity',dept_code:'ELEC',head_name:'Sunita Rao',total:87,resolved:52,pending:24,avg_hrs:14.8,resolution_pct:59.8},
+    {dept_name:'Transport',dept_code:'TRAF',head_name:'Meena Joshi',total:75,resolved:41,pending:22,avg_hrs:38.4,resolution_pct:54.7},
+    {dept_name:'Public Safety',dept_code:'SAFE',head_name:'Deepa Nair',total:61,resolved:37,pending:16,avg_hrs:27.3,resolution_pct:60.7}
+  ],
+  hotspots:[
+    {area_name:'Hadapsar',ward_number:'W03',zone:'East',total_30d:28,high_priority:11,unresolved:14},
+    {area_name:'Shivajinagar',ward_number:'W05',zone:'Central',total_30d:22,high_priority:8,unresolved:10},
+    {area_name:'Bibwewadi',ward_number:'W09',zone:'South',total_30d:19,high_priority:6,unresolved:9},
+    {area_name:'Baner',ward_number:'W12',zone:'West',total_30d:17,high_priority:5,unresolved:8},
+    {area_name:'Kothrud',ward_number:'W02',zone:'West',total_30d:15,high_priority:4,unresolved:7}
+  ],
+  highPriority:[
+    {complaint_code:'CMP-2024-00015',title:'Water pipe burst near school',priority_name:'Critical',color_code:'#dc3545',cat_name:'Water Supply',area_name:'Hadapsar',dept_name:'Water & Utilities',age_hours:52,sla_hours:4,sla_status:'BREACHED'},
+    {complaint_code:'CMP-2024-00042',title:'Sewage overflow blocking road',priority_name:'Critical',color_code:'#dc3545',cat_name:'Sewage',area_name:'Bibwewadi',dept_name:'Water & Utilities',age_hours:38,sla_hours:4,sla_status:'BREACHED'},
+    {complaint_code:'CMP-2024-00089',title:'Major pothole accident risk',priority_name:'High',color_code:'#fd7e14',cat_name:'Pothole',area_name:'Shivajinagar',dept_name:'Engineering',age_hours:31,sla_hours:24,sla_status:'BREACHED'},
+    {complaint_code:'CMP-2024-00124',title:'Traffic signal failure at junction',priority_name:'Critical',color_code:'#dc3545',cat_name:'Traffic Signal',area_name:'Aundh',dept_name:'Transport',age_hours:18,sla_hours:4,sla_status:'BREACHED'},
+    {complaint_code:'CMP-2024-00201',title:'Power outage affecting hospital',priority_name:'Critical',color_code:'#dc3545',cat_name:'Electricity',area_name:'Kharadi',dept_name:'Electricity',age_hours:9,sla_hours:4,sla_status:'BREACHED'},
+    {complaint_code:'CMP-2024-00287',title:'Garbage pile health hazard',priority_name:'High',color_code:'#fd7e14',cat_name:'Garbage',area_name:'Baner',dept_name:'Sanitation',age_hours:19,sla_hours:24,sla_status:'OK'},
+    {complaint_code:'CMP-2024-00341',title:'Broken water main, flooding',priority_name:'High',color_code:'#fd7e14',cat_name:'Water Supply',area_name:'Kothrud',dept_name:'Water & Utilities',age_hours:14,sla_hours:24,sla_status:'OK'},
+  ],
+  sla:[
+    {priority_name:'Critical',target_hrs:4, avg_actual_hrs:11.2,compliance_pct:32},
+    {priority_name:'High',    target_hrs:24,avg_actual_hrs:29.4,compliance_pct:58},
+    {priority_name:'Medium',  target_hrs:72,avg_actual_hrs:51.1,compliance_pct:74},
+    {priority_name:'Low',     target_hrs:168,avg_actual_hrs:88.3,compliance_pct:91}
+  ]
+};
+
+// Chart instances
+let trendChart, catChart, deptChart, slaChart;
+function refreshDashboard(){
+  renderKPI();
+  renderMonthlyTrend();
+  renderCategoryChart();
+  renderDeptChart();
+  renderSLAChart();
+  renderHotspots();
+  renderHighPriority();
+  renderDeptTable();
+}
+
+function renderKPI(){
+  const d = demo.kpi;
+  document.getElementById('kv-total').textContent    = toNum(d.total_complaints).toLocaleString();
+  document.getElementById('kv-today').textContent    = `+${toNum(d.new_today)} today · ${toNum(d.new_this_week)} this week`;
+  document.getElementById('kv-pending').textContent  = toNum(d.pending).toLocaleString();
+  document.getElementById('kv-critical').textContent = `${toNum(d.critical)} critical`;
+  document.getElementById('kv-resolved').textContent = toNum(d.resolved).toLocaleString();
+  document.getElementById('kv-reso-pct').textContent = `${toNum(d.resolution_pct)}% rate`;
+  document.getElementById('kv-hotspot').textContent  = toNum(d.hotspot_complaints).toLocaleString();
+  document.getElementById('kv-avg-hrs').textContent  = `${toNum(d.avg_resolution_hrs)}h avg resolution`;
+  document.getElementById('pendingBadge').textContent = toNum(d.pending);
+  document.getElementById('dashDate').textContent =
+    'Last updated: ' + new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'});
+
+}
+
+function chartCommonOptions(){
+  return {
+    responsive:true,
+    maintainAspectRatio:false,
+    animation:{duration:700,easing:'easeOutQuart'},
+    plugins:{
+      legend:{labels:{color:'#9fb0ca',font:{size:11,family:'Inter'}}},
+      tooltip:{
+        backgroundColor:'rgba(7,11,22,.96)',
+        borderColor:'rgba(34,211,238,.32)',
+        borderWidth:1,
+        titleColor:'#eaf2ff',
+        bodyColor:'#9fb0ca',
+        padding:10
+      }
+    }
+  };
+}
+
+function renderMonthlyTrend(){
+  const labels  = demo.monthly.map(m=>m.label);
+  const totals  = demo.monthly.map(m=>m.total);
+  const resolved= demo.monthly.map(m=>m.resolved);
+  const critical= demo.monthly.map(m=>m.critical);
+
+  if(trendChart) trendChart.destroy();
+  trendChart = new Chart(document.getElementById('trendChart'),{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'Total Submitted',data:totals,backgroundColor:'rgba(0,176,255,.2)',
+       borderColor:'#00b0ff',borderWidth:2,borderRadius:4,order:2},
+      {label:'Resolved',data:resolved,backgroundColor:'rgba(0,200,83,.2)',
+       borderColor:'#00c853',borderWidth:2,borderRadius:4,order:3},
+      {label:'Critical',data:critical,type:'line',borderColor:'#f44336',
+       backgroundColor:'rgba(244,67,54,.1)',pointRadius:4,fill:true,tension:.4,order:1}
+    ]},
+    options:{
+      ...chartCommonOptions(),
+      plugins:{...chartCommonOptions().plugins, legend:{position:'top',labels:{color:'#9fb0ca',boxWidth:12}}},
+      scales:{x:{grid:{color:'rgba(48,54,61,.28)'},ticks:{color:'#9fb0ca',font:{size:10}}},
+              y:{grid:{color:'rgba(48,54,61,.28)'},ticks:{color:'#9fb0ca',font:{size:11}}}}
+    }
+  });
+}
+
+function renderCategoryChart(){
+  const cats   = demo.categories;
+  const labels = cats.map(c=>c.cat_name);
+  const values = cats.map(c=>c.total);
+  const colors = ['#00b0ff','#00c853','#ffab00','#f44336','#7c4dff','#ff6d00','#00bfa5','#546e7a'];
+
+  if(catChart) catChart.destroy();
+  catChart = new Chart(document.getElementById('categoryChart'),{
+    type:'doughnut',
+    data:{labels,datasets:[{data:values,backgroundColor:colors.map(c=>c+'33'),
+      borderColor:colors,borderWidth:2,hoverOffset:8}]},
+    options:{
+      ...chartCommonOptions(),
+      cutout:'72%',
+      plugins:{...chartCommonOptions().plugins, legend:{display:false},
+        tooltip:{...chartCommonOptions().plugins.tooltip,callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} (${cats[ctx.dataIndex].pct}%)`}}}
+    }
+  });
+  const legend = document.getElementById('catLegend');
+  legend.innerHTML = cats.map((c,i)=>
+    `<div class="d-flex justify-content-between align-items-center mb-1">
+      <span><span style="background:${colors[i]};width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px"></span>${c.cat_name}</span>
+      <strong>${c.pct}%</strong>
+    </div>`).join('');
+}
+
+function renderDeptChart(){
+  const depts = demo.departments;
+  if(deptChart) deptChart.destroy();
+  deptChart = new Chart(document.getElementById('deptChart'),{
+    type:'bar',
+    data:{
+      labels:depts.map(d=>d.dept_code),
+      datasets:[
+        {label:'Resolution %',data:depts.map(d=>d.resolution_pct),
+         backgroundColor:depts.map(d=>d.resolution_pct>=70?'rgba(0,200,83,.3)':d.resolution_pct>=55?'rgba(255,171,0,.3)':'rgba(244,67,54,.3)'),
+         borderColor:depts.map(d=>d.resolution_pct>=70?'#00c853':d.resolution_pct>=55?'#ffab00':'#f44336'),
+         borderWidth:2,borderRadius:6},
+      ]},
+    options:{responsive:true,indexAxis:'y',
+      plugins:{...chartCommonOptions().plugins,legend:{display:false}},
+      scales:{
+        x:{min:0,max:100,grid:{color:'rgba(48,54,61,.28)'},ticks:{color:'#9fb0ca',callback:v=>v+'%'}},
+        y:{grid:{display:false},ticks:{color:'#9fb0ca',font:{size:11}}}
+      }}
+  });
+}
+
+function renderSLAChart(){
+  const sla = demo.sla;
+  if(slaChart) slaChart.destroy();
+  const colorsMap = {Critical:'#dc3545',High:'#fd7e14',Medium:'#ffc107',Low:'#28a745'};
+  slaChart = new Chart(document.getElementById('slaChart'),{
+    type:'bar',
+    data:{
+      labels:sla.map(s=>s.priority_name),
+      datasets:[
+        {label:'SLA Compliance %',data:sla.map(s=>s.compliance_pct),
+         backgroundColor:sla.map(s=>colorsMap[s.priority_name]+'44'),
+         borderColor:sla.map(s=>colorsMap[s.priority_name]),
+         borderWidth:2,borderRadius:6},
+        {label:'Target (100%)',data:[100,100,100,100],type:'line',
+         borderColor:'rgba(255,255,255,.2)',borderDash:[5,5],pointRadius:0,fill:false}
+      ]},
+    options:{...chartCommonOptions(),plugins:{...chartCommonOptions().plugins,legend:{display:true,labels:{color:'#9fb0ca',font:{size:11}}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#9fb0ca'}},
+        y:{min:0,max:100,grid:{color:'rgba(48,54,61,.28)'},
+           ticks:{color:'#9fb0ca',callback:v=>v+'%'}}
+      }}
+  });
+}
+
+function renderHotspots(){
+  const el   = document.getElementById('hotspotList');
+  if(!demo.hotspots.length){
+    el.innerHTML = `<div class="text-center py-4" style="color:var(--text-muted)">No hotspot data available.</div>`;
+    return;
+  }
+  const max  = Math.max(...demo.hotspots.map(h=>toNum(h.total_30d,1)));
+  el.innerHTML = demo.hotspots.map(h=>`
+    <div class="mb-3 p-3 rounded" style="background:rgba(244,67,54,.06);border:1px solid rgba(244,67,54,.15)">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="fw-600" style="font-size:14px">${h.area_name}
+            <span class="badge ms-1" style="background:rgba(244,67,54,.2);color:#f44336;font-size:10px">HOTSPOT</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)">${h.ward_number} · ${h.zone} Zone</div>
+        </div>
+        <div class="text-end">
+          <div style="font-size:20px;font-weight:800;color:#f44336">${toNum(h.total_30d)}</div>
+          <div style="font-size:10px;color:var(--text-muted)">30-day</div>
+        </div>
+      </div>
+      <div class="hotspot-bar mt-2">
+        <div class="hotspot-fill" style="width:${(toNum(h.total_30d)/Math.max(1,max))*100}%"></div>
+      </div>
+      <div class="d-flex gap-3 mt-2" style="font-size:11px;color:var(--text-muted)">
+        <span><i class="fa fa-triangle-exclamation me-1" style="color:#fd7e14"></i>${toNum(h.high_priority)} high priority</span>
+        <span><i class="fa fa-clock me-1" style="color:#ffab00"></i>${toNum(h.unresolved)} unresolved</span>
+      </div>
+    </div>`).join('');
+}
+
+function renderHighPriority(){
+  const tbody = document.getElementById('priorityBody');
+  tbody.innerHTML = demo.highPriority.map(c=>`
+    <tr>
+      <td><code style="font-size:11px;color:var(--accent)">${c.complaint_code}</code></td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${c.title}">${c.title}</td>
+      <td><span class="priority-dot" style="background:${c.color_code}"></span>${c.priority_name}</td>
+      <td>${c.area_name}</td>
+      <td>${c.dept_name}</td>
+      <td>${c.age_hours}h</td>
+      <td><span class="status-badge ${c.sla_status==='BREACHED'?'badge-rejected':'badge-resolved'}">${c.sla_status}</span></td>
+    </tr>`).join('');
+}
+
+function renderDeptTable(){
+  const tbody = document.getElementById('deptTableBody');
+
+  tbody.innerHTML = demo.departments.map(d=>{
+    const pct  = toNum(d.resolution_pct);
+    const color= pct>=70?'var(--success)':pct>=55?'var(--warning)':'var(--danger)';
+
+    return `
+    <tr>
+      <td><strong>${d.dept_name}</strong><br>
+          <span style="font-size:11px;color:var(--text-muted)">
+            ${d.dept_code}
+          </span>
+      </td>
+      <td>${d.head_name}</td>
+      <td>${toNum(d.total).toLocaleString()}</td>
+      <td style="color:var(--success)">${toNum(d.resolved)}</td>
+      <td style="color:var(--warning)">${toNum(d.pending)}</td>
+      <td>${toNum(d.avg_hrs)}h</td>
+      <td>
+        <div class="d-flex align-items-center gap-2">
+          <div style="flex:1;background:#30363d;height:6px;border-radius:3px">
+            <div style="width:${pct}%;height:100%;background:${color};border-radius:3px"></div>
+          </div>
+          <span style="color:${color};font-weight:700;font-size:13px;min-width:40px">
+            ${pct}%
+          </span>
+        </div>
+      </td>
+    </tr>
+    `;
+  }).join('');
+}
+
+      </script>
+      </body>
+</html>

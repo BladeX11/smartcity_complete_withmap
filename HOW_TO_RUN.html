@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartCity — Complete Installation Guide</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --card: #1a2234;
+  --border: #2a3548;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --blue: #3b82f6;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --purple: #8b5cf6;
+  --cyan: #06b6d4;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: 280px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  height: 100vh;
+  position: fixed;
+  top: 0; left: 0;
+  overflow-y: auto;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.sidebar-brand {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-logo {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.brand-text h3 { font-size: 14px; font-weight: 800; }
+.brand-text p { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'JetBrains Mono'; }
+
+.nav-section {
+  padding: 14px 20px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: .15s;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+}
+.nav-link:hover { color: var(--text); background: rgba(59,130,246,.06); }
+.nav-link.active { color: var(--blue); border-left-color: var(--blue); background: rgba(59,130,246,.08); }
+.nav-link .step-badge {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.nav-link.done .step-badge { background: rgba(16,185,129,.2); color: var(--green); }
+.nav-link.active .step-badge { background: rgba(59,130,246,.2); color: var(--blue); }
+
+/* ─── MAIN ─── */
+.main {
+  margin-left: 280px;
+  min-height: 100vh;
+}
+
+/* ─── HERO ─── */
+.hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 60px 60px 50px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: 20%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(59,130,246,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59,130,246,.1);
+  border: 1px solid rgba(59,130,246,.25);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  letter-spacing: .3px;
+  margin-bottom: 20px;
+}
+.hero h1 { font-size: 36px; font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+.hero h1 span { color: var(--blue); }
+.hero p { font-size: 15px; color: var(--muted); max-width: 600px; margin-bottom: 28px; }
+
+.time-estimate {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.te-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+.te-item i { color: var(--blue); }
+
+/* ─── SECTIONS ─── */
+.section {
+  padding: 50px 60px;
+  border-bottom: 1px solid var(--border);
+}
+.section:last-child { border-bottom: none; }
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.section-num {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.section-header h2 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.section-header p { font-size: 14px; color: var(--muted); }
+
+/* ─── OS TABS ─── */
+.os-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.os-tab {
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .15s;
+  font-family: 'Inter', sans-serif;
+  display: flex; align-items: center; gap: 7px;
+}
+.os-tab:hover { border-color: rgba(59,130,246,.4); color: var(--text); }
+.os-tab.active { background: rgba(59,130,246,.1); border-color: var(--blue); color: var(--blue); }
+.os-content { display: none; }
+.os-content.show { display: block; }
+
+/* ─── COMMAND BLOCKS ─── */
+.cmd-block {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin: 12px 0;
+  overflow: hidden;
+}
+.cmd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(255,255,255,.03);
+  border-bottom: 1px solid var(--border);
+}
+.cmd-label { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono'; font-weight: 600; }
+.copy-btn {
+  background: rgba(59,130,246,.1);
+  border: 1px solid rgba(59,130,246,.2);
+  color: var(--blue);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: .15s;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+.copy-btn:hover { background: rgba(59,130,246,.2); }
+.copy-btn.copied { background: rgba(16,185,129,.1); border-color: rgba(16,185,129,.3); color: var(--green); }
+
+.cmd-body {
+  padding: 16px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 2;
+  white-space: pre;
+  overflow-x: auto;
+}
+.cmd-body::-webkit-scrollbar { height: 4px; }
+.cmd-body::-webkit-scrollbar-thumb { background: var(--border); }
+.c-comment { color: #6b7280; }
+.c-cmd     { color: #60a5fa; }
+.c-string  { color: #34d399; }
+.c-key     { color: #f59e0b; }
+.c-success { color: #10b981; }
+.c-err     { color: #ef4444; }
+
+/* ─── STEPS ─── */
+.step-list { display: flex; flex-direction: column; gap: 0; }
+.step-item {
+  display: flex;
+  gap: 16px;
+  padding: 0 0 24px;
+  position: relative;
+}
+.step-item::before {
+  content: '';
+  position: absolute;
+  left: 15px; top: 32px;
+  width: 2px;
+  bottom: 0;
+  background: var(--border);
+}
+.step-item:last-child::before { display: none; }
+.step-item:last-child { padding-bottom: 0; }
+.step-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+}
+.step-content { flex: 1; padding-top: 4px; }
+.step-content h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.step-content p { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+
+/* ─── ALERTS ─── */
+.alert {
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  font-size: 13px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.alert i { margin-top: 1px; flex-shrink: 0; font-size: 14px; }
+.alert-info    { background: rgba(59,130,246,.08);  border: 1px solid rgba(59,130,246,.2);  }
+.alert-info i  { color: var(--blue); }
+.alert-warn    { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.2); }
+.alert-warn i  { color: var(--yellow); }
+.alert-danger  { background: rgba(239,68,68,.08);  border: 1px solid rgba(239,68,68,.2);  }
+.alert-danger i{ color: var(--red); }
+.alert-success { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.2); }
+.alert-success i{ color: var(--green); }
+
+/* ─── ARCHITECTURE DIAGRAM ─── */
+.arch-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin: 24px 0;
+}
+.arch-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 24px;
+  text-align: center;
+  min-width: 150px;
+}
+.arch-box .icon { font-size: 28px; margin-bottom: 10px; }
+.arch-box h4 { font-size: 13px; font-weight: 800; }
+.arch-box p { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.arch-box .port {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono';
+}
+.arch-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0 16px;
+}
+.arch-arrow .line {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  position: relative;
+}
+.arch-arrow .line::after {
+  content: '▶';
+  position: absolute;
+  right: -6px;
+  top: -7px;
+  color: var(--purple);
+  font-size: 10px;
+}
+.arch-arrow span { font-size: 10px; color: var(--muted); white-space: nowrap; }
+
+/* ─── FILE TREE ─── */
+.file-tree {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 2.1;
+}
+.ft-dir  { color: #60a5fa; font-weight: 600; }
+.ft-file { color: #34d399; }
+.ft-note { color: #6b7280; font-size: 11px; }
+.ft-new  { color: #f59e0b; }
+.ft-run  { color: #a78bfa; }
+
+/* ─── CREDENTIALS TABLE ─── */
+.creds-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.creds-table th {
+  background: #0d1117;
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+}
+.creds-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(42,53,72,.5);
+  vertical-align: middle;
+}
+.creds-table tr:last-child td { border-bottom: none; }
+.creds-table code {
+  background: rgba(59,130,246,.08);
+  color: var(--blue);
+  padding: 3px 9px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono';
+  font-size: 12px;
+}
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ─── CHECKLIST ─── */
+.checklist { display: flex; flex-direction: column; gap: 0; }
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(42,53,72,.5);
+  font-size: 13px;
+}
+.check-item:last-child { border: none; }
+.check-icon {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── ERROR CARDS ─── */
+.error-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.error-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: rgba(239,68,68,.06);
+  border-bottom: 1px solid rgba(239,68,68,.15);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--red);
+}
+.error-body {
+  padding: 16px 18px;
+  display: none;
+}
+.error-card.open .error-body { display: block; }
+.error-card.open .error-header { border-radius: 0; }
+
+/* ─── QUICK RUN ─── */
+.quick-run {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.qr-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+}
+.qr-card h4 {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.qr-card p { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.qr-steps { display: flex; flex-direction: column; gap: 6px; }
+.qr-step {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 12px;
+}
+.qr-num {
+  width: 18px; height: 18px;
+  background: rgba(59,130,246,.15);
+  color: var(--blue);
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── PAGES OVERVIEW ─── */
+.pages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.page-card {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: .15s;
+  text-decoration: none;
+}
+.page-card:hover { border-color: rgba(59,130,246,.4); background: rgba(59,130,246,.03); }
+.page-card .pi { font-size: 22px; margin-bottom: 10px; }
+.page-card h5 { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.page-card p { font-size: 11px; color: var(--muted); }
+.page-card .path { font-family: 'JetBrains Mono'; font-size: 10px; color: var(--blue); margin-top: 8px; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  .sidebar { width: 0; overflow: hidden; }
+  .main { margin-left: 0; }
+  .section { padding: 32px 20px; }
+  .hero { padding: 40px 20px; }
+}
+
+/* ─── PROGRESS BAR ─── */
+.overall-progress {
+  position: fixed;
+  top: 0; left: 280px; right: 0;
+  height: 3px;
+  background: var(--border);
+  z-index: 200;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  width: 0%;
+  transition: width .3s;
+}
+
+/* inline code */
+code.inline {
+  background: rgba(59,130,246,.08);
+  color: #93c5fd;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono';
+  font-size: 12px;
+}
+</style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div class="overall-progress"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">🏙️</div>
+    <div class="brand-text">
+      <h3>SmartCity</h3>
+      <p>INSTALL GUIDE v2</p>
+    </div>
+  </div>
+
+  <div class="nav-section">Overview</div>
+  <a class="nav-link active" onclick="scrollTo('overview')"><i class="fa fa-map fa-fw"></i> How It Works</a>
+  <a class="nav-link" onclick="scrollTo('files')"><i class="fa fa-folder fa-fw"></i> Your Files</a>
+
+  <div class="nav-section">Installation Steps</div>
+  <a class="nav-link" onclick="scrollTo('step1')"><i class="fa fa-database fa-fw"></i> 1. Install MySQL <span class="step-badge">1</span></a>
+  <a class="nav-link" onclick="scrollTo('step2')"><i class="fa fa-table fa-fw"></i> 2. Load Database <span class="step-badge">2</span></a>
+  <a class="nav-link" onclick="scrollTo('step3')"><i class="fa fa-python fa-fw"></i> 3. Python Setup <span class="step-badge">3</span></a>
+  <a class="nav-link" onclick="scrollTo('step4')"><i class="fa fa-plug fa-fw"></i> 4. Connect DB <span class="step-badge">4</span></a>
+  <a class="nav-link" onclick="scrollTo('step5')"><i class="fa fa-rocket fa-fw"></i> 5. Run Flask <span class="step-badge">5</span></a>
+  <a class="nav-link" onclick="scrollTo('step6')"><i class="fa fa-globe fa-fw"></i> 6. Open Frontend <span class="step-badge">6</span></a>
+
+  <div class="nav-section">Reference</div>
+  <a class="nav-link" onclick="scrollTo('pages')"><i class="fa fa-browser fa-fw"></i> All Pages</a>
+  <a class="nav-link" onclick="scrollTo('creds')"><i class="fa fa-key fa-fw"></i> Login Credentials</a>
+  <a class="nav-link" onclick="scrollTo('errors')"><i class="fa fa-bug fa-fw"></i> Fix Errors</a>
+  <a class="nav-link" onclick="scrollTo('quickrun')"><i class="fa fa-bolt fa-fw"></i> Quick Checklist</a>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main class="main">
+
+<!-- HERO -->
+<div class="hero" id="overview">
+  <div class="hero-badge"><i class="fa fa-circle-info"></i> Complete Install Guide — Read Top to Bottom</div>
+  <h1>How to Run<br><span>SmartCity</span> on Your Computer</h1>
+  <p>This guide walks you through every single step — installing MySQL, loading the database, starting Flask, and opening the frontend. Estimated time: 20–30 minutes.</p>
+  <div class="time-estimate">
+    <div class="te-item"><i class="fa fa-clock" style="color:var(--blue)"></i> 20–30 min total</div>
+    <div class="te-item"><i class="fa fa-windows" style="color:var(--blue)"></i> Windows</div>
+    <div class="te-item"><i class="fa fa-apple" style="color:var(--blue)"></i> macOS</div>
+    <div class="te-item"><i class="fa fa-linux" style="color:var(--blue)"></i> Linux</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(59,130,246,.1);color:var(--blue)"><i class="fa fa-sitemap"></i></div>
+    <div>
+      <h2>How the 3 Parts Connect</h2>
+      <p>Your project has 3 parts that must ALL be running at the same time</p>
+    </div>
+  </div>
+
+  <div class="arch-diagram">
+    <div class="arch-box">
+      <div class="icon">🌐</div>
+      <h4>Frontend</h4>
+      <p>HTML + CSS + JS<br>Charts + Map</p>
+      <div class="port" style="background:rgba(59,130,246,.1);color:var(--blue)">Port 5500</div>
+    </div>
+    <div class="arch-arrow">
+      <div class="line"></div>
+      <span>API calls</span>
+    </div>
+    <div class="arch-box">
+      <div class="icon">🐍</div>
+      <h4>Flask Backend</h4>
+      <p>Python REST API<br>Analytics Logic</p>
+      <div class="port" style="background:rgba(139,92,246,.1);color:var(--purple)">Port 5000</div>
+    </div>
+    <div class="arch-arrow">
+      <div class="line" style="background:linear-gradient(90deg,var(--purple),var(--green))"></div>
+      <span>SQL queries</span>
+    </div>
+    <div class="arch-box">
+      <div class="icon">🗄️</div>
+      <h4>MySQL Database</h4>
+      <p>Tables, Views<br>500 complaints</p>
+      <div class="port" style="background:rgba(16,185,129,.1);color:var(--green)">Port 3306</div>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    <i class="fa fa-lightbulb"></i>
+    <div><strong>Simple rule:</strong> MySQL runs automatically in the background. You only need to manually start Flask (Step 5). Then open your HTML file. That's it.</div>
+  </div>
+</div>
+
+<!-- FILE STRUCTURE -->
+<div class="section" id="files">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(245,158,11,.1);color:var(--yellow)"><i class="fa fa-folder-open"></i></div>
+    <div>
+      <h2>Your Project Files</h2>
+      <p>Here is what every file does — run them in this exact order</p>
+    </div>
+  </div>
+
+  <div class="file-tree">
+<span class="ft-dir">📁 smartcity/</span>
+│
+<span class="ft-dir">├── 📁 database/</span>
+│   <span class="ft-file">├── schema.sql</span>        <span class="ft-note">← Run FIRST in MySQL — creates all 9 tables</span>
+│   <span class="ft-file">├── seed_data.sql</span>     <span class="ft-note">← Run SECOND — loads 100 users + 500 complaints</span>
+│   <span class="ft-new">├── crime_schema.sql</span>  <span class="ft-note">← Run THIRD — adds crime tables + 80 incidents</span>
+│   <span class="ft-file">└── analytics_queries.sql</span> <span class="ft-note">← Optional reference</span>
+│
+<span class="ft-dir">├── 📁 backend/</span>
+│   <span class="ft-file">├── app.py</span>            <span class="ft-note">← Main Flask server — YOU RUN THIS</span>
+│   <span class="ft-new">├── crime_routes.py</span>   <span class="ft-note">← Copy its routes into app.py</span>
+│   <span class="ft-file">└── requirements.txt</span>  <span class="ft-note">← Package list for pip install</span>
+│
+<span class="ft-dir">└── 📁 frontend/</span>
+    <span class="ft-file">├── index.html</span>        <span class="ft-note">← Home page — open this first</span>
+    <span class="ft-dir">└── 📁 pages/</span>
+        <span class="ft-file">├── admin_dashboard.html</span>    <span class="ft-note">← Charts & analytics</span>
+        <span class="ft-file">├── admin_complaints.html</span>   <span class="ft-note">← Manage complaints</span>
+        <span class="ft-file">├── submit_complaint.html</span>   <span class="ft-note">← Citizen form</span>
+        <span class="ft-file">├── complaint_tracker.html</span>  <span class="ft-note">← Track status</span>
+        <span class="ft-new">└── city_map.html</span>           <span class="ft-note">← 🗺️ Interactive map (new!)</span>
+  </div>
+</div>
+
+<!-- ═══ STEP 1: MYSQL ═══ -->
+<div class="section" id="step1">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(239,68,68,.1);color:var(--red)">1</div>
+    <div>
+      <h2>Install MySQL</h2>
+      <p>The database that stores everything. Install once, runs automatically after that.</p>
+    </div>
+  </div>
+
+  <div class="os-tabs">
+    <button class="os-tab active" onclick="showOS(this,'mysql','win')"><i class="fa fa-windows"></i> Windows</button>
+    <button class="os-tab" onclick="showOS(this,'mysql','mac')"><i class="fa fa-apple"></i> macOS</button>
+    <button class="os-tab" onclick="showOS(this,'mysql','linux')"><i class="fa fa-linux"></i> Linux (Ubuntu)</button>
+  </div>
+
+  <div class="os-content show" id="mysql-win">
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-icon" style="border-color:var(--blue);color:var(--blue)">1</div>
+        <div class="step-content">
+          <h4>Download MySQL Installer</h4>
+          <p>Go to <strong style="color:var(--blue)">mysql.com/downloads/installer</strong> → Download the <strong>"MySQL Installer for Windows"</strong> (the small ~2MB web installer)</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-icon" style="border-color:var(--blue);color:var(--blue)">2</div>
+        <div class="step-content">
+          <h4>Run the Installer</h4>
+          <p>Double-click the downloaded file → Choose <strong>"Developer Default"</strong> → Click Next → Click Execute → Wait for it to finish</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-icon" style="border-color:var(--blue);color:var(--blue)">3</div>
+        <div class="step-content">
+          <h4>Set Root Password</h4>
+          <p>During setup it asks for a <strong>MySQL Root Password</strong>. Type something simple you'll remember:</p>
+          <div class="cmd-block">
+            <div class="cmd-header"><span class="cmd-label">Recommended root password for development</span></div>
+            <div class="cmd-body"><span class="c-string">root123</span>   <span class="c-comment"># Use this exactly — you'll need it in Step 4</span></div>
+          </div>
+          <div class="alert alert-warn">
+            <i class="fa fa-triangle-exclamation"></i>
+            <div>Write down your password right now. You <strong>cannot</strong> connect the backend without it.</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-icon" style="border-color:var(--green);color:var(--green)">✓</div>
+        <div class="step-content">
+          <h4>Verify MySQL is Running</h4>
+          <p>Open <strong>Command Prompt</strong> (press Win+R, type <code class="inline">cmd</code>, press Enter) and run:</p>
+          <div class="cmd-block">
+            <div class="cmd-header"><span class="cmd-label">Command Prompt</span><button class="copy-btn" onclick="copyCmd(this,'mysql -u root -p\n# Type your password when asked\n# You should see: mysql>')">Copy</button></div>
+            <div class="cmd-body"><span class="c-cmd">mysql</span> -u root -p
+<span class="c-comment"># Type your password when asked
+# You should see: mysql&gt;
+# Type "exit" to leave</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-success"><i class="fa fa-circle-check"></i><div>MySQL Workbench is also installed automatically — it's a visual tool that makes running SQL files much easier.</div></div>
+  </div>
+
+  <div class="os-content" id="mysql-mac">
+    <div class="cmd-block">
+      <div class="cmd-header"><span class="cmd-label">Terminal — macOS</span><button class="copy-btn" onclick="copyCmd(this)">Copy</button></div>
+      <div class="cmd-body"><span class="c-comment"># Step 1: Install Homebrew (if not already installed)</span>
+/bin/bash -c <span class="c-string">"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span>
+
+<span class="c-comment"># Step 2: Install MySQL</span>
+<span class="c-cmd">brew install</span> mysql
+
+<span class="c-comment"># Step 3: Start MySQL now and on boot</span>
+<span class="c-cmd">brew services start</span> mysql
+
+<span class="c-comment"># Step 4: Set root password (follow the prompts)</span>
+<span class="c-cmd">mysql_secure_installation</span>
+<span class="c-comment"># When asked "Set root password?" → Yes → type: root123
+# Answer Y to all other questions</span>
+
+<span class="c-comment"># Step 5: Test it works</span>
+<span class="c-cmd">mysql</span> -u root -p
+<span class="c-comment"># Enter password: root123 → you should see mysql&gt;</span></div>
+    </div>
+  </div>
+
+  <div class="os-content" id="mysql-linux">
+    <div class="cmd-block">
+      <div class="cmd-header"><span class="cmd-label">Terminal — Ubuntu/Debian</span><button class="copy-btn" onclick="copyCmd(this)">Copy</button></div>
+      <div class="cmd-body"><span class="c-cmd">sudo apt update</span>
+<span class="c-cmd">sudo apt install</span> mysql-server -y
+
+<span class="c-cmd">sudo systemctl start</span> mysql
+<span class="c-cmd">sudo systemctl enable</span> mysql
+
+<span class="c-comment"># Set up root password</span>
+<span class="c-cmd">sudo mysql</span>
+<span class="c-comment"># Inside MySQL shell, run these 3 lines:</span>
+ALTER USER <span class="c-string">'root'</span>@<span class="c-string">'localhost'</span> IDENTIFIED WITH mysql_native_password BY <span class="c-string">'root123'</span>;
+FLUSH PRIVILEGES;
+exit;
+
+<span class="c-comment"># Now test login</span>
+<span class="c-cmd">mysql</span> -u root -p
+<span class="c-comment"># Password: root123</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STEP 2: LOAD DATABASE ═══ -->
+<div class="section" id="step2">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(139,92,246,.1);color:var(--purple)">2</div>
+    <div>
+      <h2>Load the Database</h2>
+      <p>Run 3 SQL files in MySQL Workbench to create all tables and load sample data.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-info"><i class="fa fa-star"></i><div><strong>Recommended method: MySQL Workbench</strong> — it's the easiest. It was installed automatically with MySQL on Windows.</div></div>
+
+  <div class="step-list" style="margin-top:20px">
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--purple);color:var(--purple)">1</div>
+      <div class="step-content">
+        <h4>Open MySQL Workbench</h4>
+        <p>Find it in your Start Menu (Windows) or Applications folder (Mac). Click the connection named <strong>"Local instance 3306"</strong>. Enter your password if asked.</p>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--purple);color:var(--purple)">2</div>
+      <div class="step-content">
+        <h4>Run schema.sql first</h4>
+        <p>In Workbench menu: <strong>File → Open SQL Script</strong> → browse to your <code class="inline">smartcity/database/schema.sql</code> file → click Open → then press <strong>Ctrl+Shift+Enter</strong> (or click the ⚡ lightning button)</p>
+        <div class="alert alert-success"><i class="fa fa-circle-check"></i><div>Wait until you see green checkmarks in the Output panel at the bottom. This creates all 9 tables.</div></div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--purple);color:var(--purple)">3</div>
+      <div class="step-content">
+        <h4>Run seed_data.sql second</h4>
+        <p><strong>File → Open SQL Script</strong> → open <code class="inline">database/seed_data.sql</code> → Execute. This loads 100 users + 500 complaints.</p>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--purple);color:var(--purple)">4</div>
+      <div class="step-content">
+        <h4>Run crime_schema.sql third</h4>
+        <p><strong>File → Open SQL Script</strong> → open <code class="inline">database/crime_schema.sql</code> → Execute. This adds the crime tables and 80 incidents for the map.</p>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--green);color:var(--green)">✓</div>
+      <div class="step-content">
+        <h4>Verify it worked</h4>
+        <p>Open a new query tab in Workbench and run this:</p>
+        <div class="cmd-block">
+          <div class="cmd-header"><span class="cmd-label">MySQL Workbench — New Query Tab</span><button class="copy-btn" onclick="copyCmd(this,'USE smartcity_db;\nSELECT COUNT(*) AS complaints FROM complaints;\nSELECT COUNT(*) AS users FROM users;\nSELECT COUNT(*) AS crimes FROM crime_incidents;')">Copy</button></div>
+          <div class="cmd-body">USE smartcity_db;
+SELECT COUNT(*) AS complaints FROM complaints;   <span class="c-comment">-- should say 500</span>
+SELECT COUNT(*) AS users      FROM users;         <span class="c-comment">-- should say 110</span>
+SELECT COUNT(*) AS crimes     FROM crime_incidents; <span class="c-comment">-- should say 80</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-warn"><i class="fa fa-triangle-exclamation"></i><div>If you get an error about stored procedures or triggers, run this first in Workbench: <code class="inline">SET GLOBAL log_bin_trust_function_creators = 1;</code> then run the SQL files again.</div></div>
+</div>
+
+<!-- ═══ STEP 3: PYTHON ═══ -->
+<div class="section" id="step3">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(16,185,129,.1);color:var(--green)">3</div>
+    <div>
+      <h2>Install Python & Packages</h2>
+      <p>Python runs your Flask backend. You install this once.</p>
+    </div>
+  </div>
+
+  <div class="step-list">
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--green);color:var(--green)">1</div>
+      <div class="step-content">
+        <h4>Check if Python is installed</h4>
+        <div class="os-tabs" style="margin-top:8px">
+          <button class="os-tab active" onclick="showOS(this,'pycheck','win')"><i class="fa fa-windows"></i> Windows</button>
+          <button class="os-tab" onclick="showOS(this,'pycheck','mac')"><i class="fa fa-apple"></i> Mac/Linux</button>
+        </div>
+        <div class="os-content show" id="pycheck-win">
+          <div class="cmd-block">
+            <div class="cmd-header"><span class="cmd-label">Command Prompt</span><button class="copy-btn" onclick="copyCmd(this,'python --version')">Copy</button></div>
+            <div class="cmd-body"><span class="c-cmd">python</span> --version
+<span class="c-comment"># Should say: Python 3.10 or higher
+# If it says "not recognized" → download from python.org</span></div>
+          </div>
+          <div class="alert alert-warn"><i class="fa fa-triangle-exclamation"></i><div>When installing Python from python.org, <strong>check the box "Add Python to PATH"</strong> on the first screen before clicking Install.</div></div>
+        </div>
+        <div class="os-content" id="pycheck-mac">
+          <div class="cmd-block">
+            <div class="cmd-header"><span class="cmd-label">Terminal</span><button class="copy-btn" onclick="copyCmd(this,'python3 --version')">Copy</button></div>
+            <div class="cmd-body"><span class="c-cmd">python3</span> --version
+<span class="c-comment"># Should say: Python 3.10 or higher</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--green);color:var(--green)">2</div>
+      <div class="step-content">
+        <h4>Navigate to the backend folder</h4>
+        <div class="os-tabs" style="margin-top:8px">
+          <button class="os-tab active" onclick="showOS(this,'nav','win')"><i class="fa fa-windows"></i> Windows</button>
+          <button class="os-tab" onclick="showOS(this,'nav','mac')"><i class="fa fa-apple"></i> Mac/Linux</button>
+        </div>
+        <div class="os-content show" id="nav-win">
+          <div class="cmd-block">
+            <div class="cmd-header"><span class="cmd-label">Command Prompt</span><button class="copy-btn" onclick="copyCmd(this,'cd C:\\Users\\YourName\\Downloads\\smartcity\\backend')">Copy</button></div>
+            <div class="cmd-body"><span class="c-cmd">cd</span> C:\Users\<span class="c-key">YourName</span>\Downloads\smartcity\backend
+<span class="c-comment"># Replace YourName with your actual Windows username
+# TIP: You can drag the backend folder into the terminal window!</span></div>
+          </div>
+        </div>
+        <div class="os-content" id="nav-mac">
+          <div class="cmd-block">
+            <div class="cmd-header"><span class="cmd-label">Terminal</span><button class="copy-btn" onclick="copyCmd(this,'cd ~/Downloads/smartcity/backend')">Copy</button></div>
+            <div class="cmd-body"><span class="c-cmd">cd</span> ~/Downloads/smartcity/backend
+<span class="c-comment"># Or drag the backend folder into Terminal</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--green);color:var(--green)">3</div>
+      <div class="step-content">
+        <h4>Create a virtual environment</h4>
+        <p>This keeps Flask packages separate from other Python projects (best practice)</p>
+        <div class="os-tabs" style="margin-top:8px">
+          <button class="os-tab active" onclick="showOS(this,'venv','win')"><i class="fa fa-windows"></i> Windows</button>
+          <button class="os-tab" onclick="showOS(this,'venv','mac')"><i class="fa fa-apple"></i> Mac/Linux</button>
+        </div>
+        <div class="os-content show" id="venv-win">
+          <div class="cmd-block">
+            <div class="cmd-header"><span class="cmd-label">Command Prompt — inside backend folder</span><button class="copy-btn" onclick="copyCmd(this,'python -m venv venv\nvenv\\Scripts\\activate')">Copy</button></div>
+            <div class="cmd-body"><span class="c-comment"># Create the virtual environment</span>
+<span class="c-cmd">python</span> -m venv venv
+
+<span class="c-comment"># Activate it</span>
+venv\Scripts\activate
+
+<span class="c-comment"># Your prompt now shows (venv) at the start — like this:</span>
+<span class="c-success">(venv) C:\...\backend&gt;</span></div>
+          </div>
+        </div>
+        <div class="os-content" id="venv-mac">
+          <div class="cmd-block">
+            <div class="cmd-header"><span class="cmd-label">Terminal — inside backend folder</span><button class="copy-btn" onclick="copyCmd(this,'python3 -m venv venv\nsource venv/bin/activate')">Copy</button></div>
+            <div class="cmd-body"><span class="c-comment"># Create the virtual environment</span>
+<span class="c-cmd">python3</span> -m venv venv
+
+<span class="c-comment"># Activate it</span>
+<span class="c-cmd">source</span> venv/bin/activate
+
+<span class="c-comment"># Your prompt now shows (venv) — like this:</span>
+<span class="c-success">(venv) user@mac backend %</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--green);color:var(--green)">4</div>
+      <div class="step-content">
+        <h4>Install all required packages</h4>
+        <div class="cmd-block">
+          <div class="cmd-header"><span class="cmd-label">Terminal (with venv active)</span><button class="copy-btn" onclick="copyCmd(this,'pip install -r requirements.txt')">Copy</button></div>
+          <div class="cmd-body"><span class="c-cmd">pip</span> install -r requirements.txt
+
+<span class="c-comment"># This installs: flask, flask-cors, mysql-connector-python, bcrypt
+# Takes 1–2 minutes. You'll see packages downloading.</span>
+
+<span class="c-comment"># Verify installed correctly:</span>
+<span class="c-cmd">pip</span> list
+<span class="c-comment"># Should show Flask, mysql-connector-python, bcrypt in the list</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STEP 4: CONNECT DB ═══ -->
+<div class="section" id="step4">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(245,158,11,.1);color:var(--yellow)">4</div>
+    <div>
+      <h2>Connect Flask to MySQL</h2>
+      <p>Tell Flask your MySQL password. This is the most important step.</p>
+    </div>
+  </div>
+
+  <div class="step-list">
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--yellow);color:var(--yellow)">1</div>
+      <div class="step-content">
+        <h4>Open app.py in any text editor</h4>
+        <p>Open <code class="inline">backend/app.py</code> in Notepad, VS Code, or any editor. Find this block around <strong>line 20</strong>:</p>
+        <div class="cmd-block">
+          <div class="cmd-header"><span class="cmd-label">backend/app.py — Find this section</span></div>
+          <div class="cmd-body">DB_CONFIG = {
+    <span class="c-string">'host'</span>:     <span class="c-string">'localhost'</span>,
+    <span class="c-string">'port'</span>:     3306,
+    <span class="c-string">'user'</span>:     <span class="c-string">'root'</span>,
+    <span class="c-string">'password'</span>: <span class="c-err">'your_password'</span>,  <span class="c-comment">← CHANGE THIS LINE</span>
+    <span class="c-string">'database'</span>: <span class="c-string">'smartcity_db'</span>,
+    <span class="c-string">'charset'</span>:  <span class="c-string">'utf8mb4'</span>,
+}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--yellow);color:var(--yellow)">2</div>
+      <div class="step-content">
+        <h4>Change the password to yours</h4>
+        <div class="cmd-block">
+          <div class="cmd-header"><span class="cmd-label">backend/app.py — After your change</span></div>
+          <div class="cmd-body">DB_CONFIG = {
+    <span class="c-string">'host'</span>:     <span class="c-string">'localhost'</span>,
+    <span class="c-string">'port'</span>:     3306,
+    <span class="c-string">'user'</span>:     <span class="c-string">'root'</span>,
+    <span class="c-string">'password'</span>: <span class="c-string">'root123'</span>,  <span class="c-comment">← Your MySQL password here</span>
+    <span class="c-string">'database'</span>: <span class="c-string">'smartcity_db'</span>,
+    <span class="c-string">'charset'</span>:  <span class="c-string">'utf8mb4'</span>,
+}</div>
+        </div>
+        <div class="alert alert-danger"><i class="fa fa-key"></i><div>Use the password you set in Step 1. If you used <code class="inline">root123</code>, type exactly that. <strong>Save the file after changing.</strong></div></div>
+      </div>
+    </div>
+
+    <div class="step-item">
+      <div class="step-icon" style="border-color:var(--yellow);color:var(--yellow)">3</div>
+      <div class="step-content">
+        <h4>Add crime routes to app.py</h4>
+        <p>Open <code class="inline">backend/crime_routes.py</code> → Copy ALL its contents → Paste them into <code class="inline">app.py</code> just <strong>above</strong> the very last line that says <code class="inline">if __name__ == '__main__':</code></p>
+        <div class="alert alert-info"><i class="fa fa-info-circle"></i><div>This adds the map and crime API endpoints. Without this, the city map won't load live data.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STEP 5: RUN FLASK ═══ -->
+<div class="section" id="step5">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(6,182,212,.1);color:var(--cyan)">5</div>
+    <div>
+      <h2>Start the Flask Backend</h2>
+      <p>Run app.py and keep this terminal window open the whole time.</p>
+    </div>
+  </div>
+
+  <div class="cmd-block">
+    <div class="cmd-header"><span class="cmd-label">Terminal — inside backend folder, venv active</span><button class="copy-btn" onclick="copyCmd(this,'python app.py')">Copy</button></div>
+    <div class="cmd-body"><span class="c-comment"># Make sure you are INSIDE the backend folder
+# Make sure (venv) is showing in your prompt
+# Then run:</span>
+
+<span class="c-cmd">python</span> app.py
+
+<span class="c-comment"># You should see output like this:</span>
+<span class="c-success"> * Serving Flask app 'app'
+ * Debug mode: on
+ * Running on http://127.0.0.1:5000
+ * Running on http://0.0.0.0:5000</span></div>
+  </div>
+
+  <div class="alert alert-success"><i class="fa fa-circle-check"></i><div><strong>Test it:</strong> Open your browser and go to <strong style="color:var(--blue)">http://localhost:5000/api/health</strong>. You should see: <code class="inline">{"success": true, "data": {"db": "connected"}}</code></div></div>
+  <div class="alert alert-warn" style="margin-top:10px"><i class="fa fa-triangle-exclamation"></i><div><strong>Important:</strong> Do NOT close this terminal window. Keep it running while you use the project. Open a separate terminal for anything else.</div></div>
+
+  <div class="error-card" style="margin-top:20px">
+    <div class="error-header" onclick="this.parentElement.classList.toggle('open')">
+      <i class="fa fa-circle-xmark"></i> Error: "Access denied for user root" → click to fix
+    </div>
+    <div class="error-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Your password in app.py doesn't match your MySQL password.</p>
+      <div class="cmd-block">
+        <div class="cmd-header"><span class="cmd-label">Fix: re-open app.py and check DB_CONFIG password</span></div>
+        <div class="cmd-body"><span class="c-string">'password'</span>: <span class="c-string">'root123'</span>,  <span class="c-comment">← Make this match what you set in Step 1</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header" onclick="this.parentElement.classList.toggle('open')">
+      <i class="fa fa-circle-xmark"></i> Error: "ModuleNotFoundError: No module named flask" → click to fix
+    </div>
+    <div class="error-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Either packages aren't installed, or the virtual environment isn't active.</p>
+      <div class="cmd-block">
+        <div class="cmd-header"><span class="cmd-label">Fix</span><button class="copy-btn" onclick="copyCmd(this)">Copy</button></div>
+        <div class="cmd-body"><span class="c-comment"># Check if (venv) is shown in your prompt.
+# If not, activate it first:</span>
+
+<span class="c-comment"># Windows:</span>
+venv\Scripts\activate
+
+<span class="c-comment"># Mac/Linux:</span>
+<span class="c-cmd">source</span> venv/bin/activate
+
+<span class="c-comment"># Then install again:</span>
+<span class="c-cmd">pip</span> install -r requirements.txt</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header" onclick="this.parentElement.classList.toggle('open')">
+      <i class="fa fa-circle-xmark"></i> Error: "Port 5000 already in use" → click to fix
+    </div>
+    <div class="error-body">
+      <div class="os-tabs"><button class="os-tab active" onclick="showOS(this,'port','win')">Windows</button><button class="os-tab" onclick="showOS(this,'port','mac')">Mac/Linux</button></div>
+      <div class="os-content show" id="port-win">
+        <div class="cmd-block"><div class="cmd-header"><span class="cmd-label">Command Prompt</span><button class="copy-btn" onclick="copyCmd(this)">Copy</button></div>
+          <div class="cmd-body"><span class="c-cmd">netstat</span> -ano | findstr :5000
+<span class="c-cmd">taskkill</span> /PID &lt;number from above&gt; /F
+<span class="c-comment"># Then run python app.py again</span></div></div>
+      </div>
+      <div class="os-content" id="port-mac">
+        <div class="cmd-block"><div class="cmd-header"><span class="cmd-label">Terminal</span><button class="copy-btn" onclick="copyCmd(this)">Copy</button></div>
+          <div class="cmd-body"><span class="c-cmd">lsof</span> -i :5000
+<span class="c-cmd">kill</span> -9 &lt;PID number shown&gt;</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STEP 6: FRONTEND ═══ -->
+<div class="section" id="step6">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(59,130,246,.1);color:var(--blue)">6</div>
+    <div>
+      <h2>Open the Frontend</h2>
+      <p>With Flask running, now open the HTML in your browser.</p>
+    </div>
+  </div>
+
+  <div class="alert alert-success"><i class="fa fa-circle-check"></i><div><strong>Easiest option:</strong> Just double-click <code class="inline">frontend/index.html</code> — it works with built-in demo data even without Flask. Perfect for demos.</div></div>
+
+  <div style="margin-top:20px">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:14px">Better Option: VS Code Live Server (Free)</h3>
+    <div class="step-list">
+      <div class="step-item">
+        <div class="step-icon" style="border-color:var(--blue);color:var(--blue)">1</div>
+        <div class="step-content">
+          <h4>Install VS Code</h4>
+          <p>Download from <strong style="color:var(--blue)">code.visualstudio.com</strong> — free</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-icon" style="border-color:var(--blue);color:var(--blue)">2</div>
+        <div class="step-content">
+          <h4>Install Live Server extension</h4>
+          <p>In VS Code: click Extensions icon (left sidebar) → search <strong>"Live Server"</strong> → Install</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-icon" style="border-color:var(--blue);color:var(--blue)">3</div>
+        <div class="step-content">
+          <h4>Open frontend folder</h4>
+          <p>In VS Code: <strong>File → Open Folder</strong> → select the <code class="inline">smartcity/frontend/</code> folder</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-icon" style="border-color:var(--green);color:var(--green)">✓</div>
+        <div class="step-content">
+          <h4>Start Live Server</h4>
+          <p>Right-click <code class="inline">index.html</code> in the file panel → <strong>"Open with Live Server"</strong></p>
+          <p>Browser opens at <strong style="color:var(--blue)">http://127.0.0.1:5500</strong> automatically.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ALL PAGES -->
+<div class="section" id="pages">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(139,92,246,.1);color:var(--purple)"><i class="fa fa-browser"></i></div>
+    <div><h2>All Pages & What They Do</h2><p>Open these in your browser once everything is running</p></div>
+  </div>
+  <div class="pages-grid">
+    <div class="page-card">
+      <div class="pi">🏠</div>
+      <h5>Home Page</h5>
+      <p>Landing page with login and live chart</p>
+      <div class="path">frontend/index.html</div>
+    </div>
+    <div class="page-card">
+      <div class="pi">📊</div>
+      <h5>Admin Dashboard</h5>
+      <p>Charts: trends, categories, dept performance, SLA, hotspots</p>
+      <div class="path">pages/admin_dashboard.html</div>
+    </div>
+    <div class="page-card">
+      <div class="pi">📋</div>
+      <h5>Complaint Management</h5>
+      <p>Table with filters, status update, CSV export</p>
+      <div class="path">pages/admin_complaints.html</div>
+    </div>
+    <div class="page-card">
+      <div class="pi">📝</div>
+      <h5>Submit Complaint</h5>
+      <p>4-step citizen form with auto-routing preview</p>
+      <div class="path">pages/submit_complaint.html</div>
+    </div>
+    <div class="page-card">
+      <div class="pi">🔍</div>
+      <h5>Track Complaint</h5>
+      <p>Enter complaint code, see full timeline + feedback</p>
+      <div class="path">pages/complaint_tracker.html</div>
+    </div>
+    <div class="page-card">
+      <div class="pi">🗺️</div>
+      <h5>City Intelligence Map</h5>
+      <p>Leaflet map: crimes + complaints + heatmap + safety zones</p>
+      <div class="path">pages/city_map.html</div>
+    </div>
+  </div>
+</div>
+
+<!-- CREDENTIALS -->
+<div class="section" id="creds">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(245,158,11,.1);color:var(--yellow)"><i class="fa fa-key"></i></div>
+    <div><h2>Login Credentials</h2><p>Use these to log into the demo system</p></div>
+  </div>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <table class="creds-table">
+      <thead>
+        <tr><th>Role</th><th>Email</th><th>Password</th><th>What you can see</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="role-badge" style="background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)">🔴 Admin</span></td>
+          <td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c6a7a2abafa886b5aba7b4b2a5afb2bfe8a1a9b0">[email&#160;protected]</a></code></td>
+          <td><code>Admin@123</code></td>
+          <td>Full dashboard, all analytics, all complaints</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge" style="background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.2)">🟡 Officer</span></td>
+          <td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="1e7b70792f5e6d737f6c6a7d776a6730797168">[email&#160;protected]</a></code></td>
+          <td><code>Admin@123</code></td>
+          <td>Engineering dept complaints only</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge" style="background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.2)">🟡 Officer</span></td>
+          <td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6a190b045b2a19070b181e09031e13440d051c">[email&#160;protected]</a></code></td>
+          <td><code>Admin@123</code></td>
+          <td>Sanitation dept complaints only</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge" style="background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2)">🟢 Citizen</span></td>
+          <td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8eefeffceff8a0fde6effce3efcee9e3efe7e2a0ede1e3">[email&#160;protected]</a></code></td>
+          <td><code>Admin@123</code></td>
+          <td>Submit & track own complaints</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge" style="background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.2)">🟢 Citizen</span></td>
+          <td><code><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="97e7e5feeef6b9e7f6e3f2fbd7f0faf6fefbb9f4f8fa">[email&#160;protected]</a></code></td>
+          <td><code>Admin@123</code></td>
+          <td>Submit & track own complaints</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ERRORS -->
+<div class="section" id="errors">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(239,68,68,.1);color:var(--red)"><i class="fa fa-bug"></i></div>
+    <div><h2>Common Errors & Fixes</h2><p>Click any error to see the fix</p></div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header" onclick="this.parentElement.classList.toggle('open')">
+      <i class="fa fa-circle-xmark"></i> Charts not showing / page looks broken
+    </div>
+    <div class="error-body">
+      <div class="alert alert-info"><i class="fa fa-info-circle"></i><div>The HTML files load Chart.js and Leaflet from CDN (internet). Make sure you have an internet connection when opening the pages.</div></div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header" onclick="this.parentElement.classList.toggle('open')">
+      <i class="fa fa-circle-xmark"></i> Map not loading / shows grey tiles
+    </div>
+    <div class="error-body">
+      <div class="alert alert-info"><i class="fa fa-info-circle"></i><div>The map needs internet to load tiles from CartoDB. Check your connection. Also try opening city_map.html via Live Server (port 5500) instead of double-clicking.</div></div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header" onclick="this.parentElement.classList.toggle('open')">
+      <i class="fa fa-circle-xmark"></i> "Table doesn't exist" error in Flask
+    </div>
+    <div class="error-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">You haven't loaded the SQL files yet, or loaded them in the wrong database.</p>
+      <div class="cmd-block">
+        <div class="cmd-header"><span class="cmd-label">MySQL Workbench</span></div>
+        <div class="cmd-body">USE smartcity_db;
+SHOW TABLES;
+<span class="c-comment"># If you see fewer than 9 tables, run schema.sql and seed_data.sql again</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header" onclick="this.parentElement.classList.toggle('open')">
+      <i class="fa fa-circle-xmark"></i> CORS error in browser console (when connecting backend)
+    </div>
+    <div class="error-body">
+      <div class="alert alert-info"><i class="fa fa-info-circle"></i><div>This happens when you open the HTML file directly (<code class="inline">file://</code>) instead of through Live Server. Use VS Code Live Server — it serves on <code class="inline">http://127.0.0.1:5500</code> which is whitelisted in Flask's CORS settings.</div></div>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-header" onclick="this.parentElement.classList.toggle('open')">
+      <i class="fa fa-circle-xmark"></i> "python is not recognized" on Windows
+    </div>
+    <div class="error-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Python wasn't added to PATH during installation.</p>
+      <div class="step-list">
+        <div class="step-item"><div class="step-icon" style="border-color:var(--blue);color:var(--blue)">1</div><div class="step-content"><p>Uninstall Python from Control Panel → Programs</p></div></div>
+        <div class="step-item"><div class="step-icon" style="border-color:var(--blue);color:var(--blue)">2</div><div class="step-content"><p>Re-download from python.org and re-install</p></div></div>
+        <div class="step-item"><div class="step-icon" style="border-color:var(--green);color:var(--green)">3</div><div class="step-content"><p>On the FIRST installer screen, tick <strong>"Add Python to PATH"</strong> before clicking Install Now</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK RUN CHECKLIST -->
+<div class="section" id="quickrun">
+  <div class="section-header">
+    <div class="section-num" style="background:rgba(16,185,129,.1);color:var(--green)"><i class="fa fa-bolt"></i></div>
+    <div><h2>Every-Time Checklist</h2><p>After initial setup, do this every time you want to use the project</p></div>
+  </div>
+
+  <div class="quick-run">
+    <div class="qr-card" style="border-color:rgba(16,185,129,.3)">
+      <h4 style="color:var(--green)"><i class="fa fa-database"></i> MySQL</h4>
+      <p>Starts automatically on Windows/Mac after installation. Nothing to do.</p>
+      <div class="qr-steps">
+        <div class="qr-step"><div class="qr-num" style="background:rgba(16,185,129,.15);color:var(--green)">✓</div><div>Already running in background</div></div>
+      </div>
+    </div>
+
+    <div class="qr-card" style="border-color:rgba(59,130,246,.3)">
+      <h4 style="color:var(--blue)"><i class="fa fa-python"></i> Flask Backend</h4>
+      <p>Open a terminal and run these every session:</p>
+      <div class="qr-steps">
+        <div class="qr-step"><div class="qr-num">1</div><div>Open terminal / Command Prompt</div></div>
+        <div class="qr-step"><div class="qr-num">2</div><div><code class="inline">cd smartcity/backend</code></div></div>
+        <div class="qr-step"><div class="qr-num" style="background:rgba(59,130,246,.15);color:var(--blue)">3</div>
+          <div>
+            Windows: <code class="inline">venv\Scripts\activate</code><br>
+            Mac: <code class="inline">source venv/bin/activate</code>
+          </div>
+        </div>
+        <div class="qr-step"><div class="qr-num">4</div><div><code class="inline">python app.py</code> — keep open!</div></div>
+      </div>
+    </div>
+
+    <div class="qr-card" style="border-color:rgba(139,92,246,.3)">
+      <h4 style="color:var(--purple)"><i class="fa fa-globe"></i> Frontend</h4>
+      <p>Open the pages in your browser:</p>
+      <div class="qr-steps">
+        <div class="qr-step"><div class="qr-num">1</div><div>Open VS Code → open frontend folder</div></div>
+        <div class="qr-step"><div class="qr-num">2</div><div>Right-click index.html → Open with Live Server</div></div>
+        <div class="qr-step"><div class="qr-num" style="background:rgba(139,92,246,.15);color:var(--purple)">3</div><div>Login: <code class="inline"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="78191c151116380b15190a0c1b110c01561f170e">[email&#160;protected]</a></code> / <code class="inline">Admin@123</code></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-info" style="margin-top:24px">
+    <i class="fa fa-graduation-cap"></i>
+    <div><strong>For college demo without any backend:</strong> Just double-click <code class="inline">frontend/index.html</code> → login as admin → open admin_dashboard.html and city_map.html. Everything works with built-in demo data. No MySQL or Flask needed at all.</div>
+  </div>
+
+  <div style="background:var(--card);border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:24px;margin-top:20px;text-align:center">
+    <div style="font-size:36px;margin-bottom:12px">🎉</div>
+    <h3 style="font-weight:800;margin-bottom:8px">You're all set!</h3>
+    <p style="color:var(--muted);font-size:14px">SmartCity is a full-stack DBMS project with MySQL, Flask, real analytics, and an interactive crime + complaint map.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px">
+      <div style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--blue)"><i class="fa fa-database me-1"></i> 9 Tables + Views + Triggers</div>
+      <div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--green)"><i class="fa fa-code me-1"></i> 20+ Flask API Routes</div>
+      <div style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--purple)"><i class="fa fa-map me-1"></i> Interactive City Map</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ── OS TAB SWITCHER ──
+function showOS(btn, group, os) {
+  // hide all in group
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(el => el.classList.remove('show'));
+  // deactivate all tabs in same tab row
+  btn.closest('.os-tabs').querySelectorAll('.os-tab').forEach(t => t.classList.remove('active'));
+  // show selected
+  const target = document.getElementById(`${group}-${os}`);
+  if (target) target.classList.add('show');
+  btn.classList.add('active');
+}
+
+// ── COPY COMMAND ──
+function copyCmd(btn, textOverride) {
+  const block = btn.closest('.cmd-block');
+  let text = textOverride;
+  if (!text) {
+    const body = block.querySelector('.cmd-body');
+    text = body.innerText
+      .replace(/←.*$/gm, '')   // remove inline comments starting with ←
+      .replace(/# .*$/gm, '')  // remove # comments
+      .replace(/\n\n+/g, '\n')
+      .trim();
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✓';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+// ── SCROLL + SIDEBAR HIGHLIGHT ──
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Update sidebar active + progress on scroll
+const sectionIds = ['overview', 

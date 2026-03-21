@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>City Intelligence Map | SmartCity</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<!-- Leaflet Heat Plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root{
+  --bg:#070b16;--panel:#0f172a;--card:#111827;--border:#24304a;
+  --text:#e7f0ff;--muted:#8ba2c7;
+  --blue:#22d3ee;--crime:#f43f5e;--success:#22c55e;--warn:#f59e0b;
+  --purple:#8b5cf6;--teal:#14b8a6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);letter-spacing:.01em}
+
+/* ── LAYOUT ── */
+.shell{display:flex;height:100vh;width:100vw}
+.left-panel{
+  width:352px;background:
+    radial-gradient(circle at 8% 0%, rgba(34,211,238,.1), transparent 26%),
+    radial-gradient(circle at 100% 22%, rgba(139,92,246,.1), transparent 30%),
+    linear-gradient(180deg,#0d1527,#0a1220);
+  border-right:1px solid rgba(140,165,210,.22);
+  display:flex;flex-direction:column;flex-shrink:0;z-index:10;overflow:hidden;
+  box-shadow:inset -1px 0 0 rgba(34,211,238,.1), 10px 0 28px rgba(4,10,20,.35)
+}
+.map-wrap{flex:1;position:relative}
+
+/* ── LEFT PANEL TOP BAR ── */
+.panel-top{padding:16px 18px 12px;border-bottom:1px solid rgba(140,165,210,.18);background:linear-gradient(180deg,rgba(34,211,238,.08),transparent)}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.brand-icon{width:36px;height:36px;background:linear-gradient(135deg,#6d28d9,#22d3ee);
+  border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;box-shadow:0 0 18px rgba(139,92,246,.35)}
+.brand-name{font-size:16px;font-weight:700;letter-spacing:.2px;font-family:'Space Grotesk',sans-serif}
+.brand-sub{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:1px}
+
+.left-intel-card{
+  margin:10px 0 12px;padding:11px 12px;border-radius:12px;
+  border:1px solid rgba(140,165,210,.24);
+  background:linear-gradient(125deg,rgba(9,16,29,.92),rgba(12,19,35,.72));
+  box-shadow:0 12px 24px rgba(3,10,21,.45), inset 0 0 0 1px rgba(34,211,238,.05);
+  position:relative;overflow:hidden
+}
+.left-intel-card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background:repeating-linear-gradient(180deg, rgba(140,165,210,.06) 0 1px, transparent 1px 10px)
+}
+.li-head{display:flex;justify-content:space-between;align-items:center;gap:8px;position:relative}
+.li-title{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:#a6bbdd;font-weight:700}
+.li-badge{font-family:'JetBrains Mono',monospace;font-size:9px;color:#22d3ee}
+.li-grid{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative}
+.li-cell .k{font-size:9px;color:#93a8ca}
+.li-cell .v{font-size:15px;font-weight:800;line-height:1.2;font-family:'Space Grotesk',sans-serif}
+
+/* SEARCH */
+.map-search{position:relative;margin-bottom:10px}
+.map-search input{background:#0a1119;border:1px solid var(--border);color:var(--text);
+  border-radius:10px;padding:10px 36px 10px 12px;width:100%;font-size:13px;font-family:'Inter',sans-serif;transition:.2s}
+.map-search input:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 2px rgba(0,200,255,.1)}
+.map-search input::placeholder{color:var(--muted)}
+.map-search i{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px}
+
+/* LAYER TOGGLES */
+.layer-row{display:flex;gap:6px;flex-wrap:wrap}
+.layer-btn{flex:1;min-width:90px;padding:7px 8px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;
+  transition:.2s;display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;justify-content:center}
+.layer-btn:hover{transform:translateY(-1px)}
+.layer-btn.active-comp{border-color:var(--blue);background:rgba(0,200,255,.08);color:var(--blue)}
+.layer-btn.active-crime{border-color:var(--crime);background:rgba(255,61,90,.08);color:var(--crime)}
+.layer-btn.active-heat{border-color:var(--warn);background:rgba(255,179,0,.08);color:var(--warn)}
+.layer-btn.active-safe{border-color:var(--success);background:rgba(0,230,118,.08);color:var(--success)}
+
+/* TABS */
+.panel-tabs{display:flex;border-bottom:1px solid var(--border)}
+.ptab{flex:1;padding:10px;border:none;background:transparent;color:var(--muted);
+  font-size:11px;font-weight:700;cursor:pointer;transition:.2s;font-family:'Space Grotesk',sans-serif;
+  text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid transparent}
+.ptab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* PANEL BODY */
+.panel-body{flex:1;overflow-y:auto;padding:0}
+.panel-body::-webkit-scrollbar{width:4px}
+.panel-body::-webkit-scrollbar-track{background:transparent}
+.panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* INCIDENT CARDS */
+.incident-item{padding:12px 16px;border-bottom:1px solid rgba(30,45,69,.6);
+  cursor:pointer;transition:.15s;position:relative}
+.incident-item:hover{background:rgba(34,211,238,.1);transform:translateX(2px)}
+.incident-item.crime-type{border-left:3px solid var(--crime)}
+.incident-item.complaint-type{border-left:3px solid var(--blue)}
+.incident-dot{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:11px;flex-shrink:0}
+.inc-code{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.inc-title{font-size:12px;font-weight:700;margin:2px 0;line-height:1.35;font-family:'Space Grotesk',sans-serif}
+.inc-meta{font-size:10px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:3px}
+.severity-tag{padding:2px 7px;border-radius:10px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.sev-critical{background:rgba(255,61,90,.15);color:#ff3d5a}
+.sev-high    {background:rgba(255,120,0,.15);color:#ff7800}
+.sev-moderate{background:rgba(255,179,0,.15);color:#ffb300}
+.sev-low     {background:rgba(0,230,118,.15);color:#00e676}
+
+/* STATS PANEL */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px}
+.stat-card{background:#0a1119;border:1px solid var(--border);border-radius:10px;padding:12px}
+.stat-card .val{font-size:24px;font-weight:700;line-height:1;margin-bottom:4px;font-family:'Space Grotesk',sans-serif}
+.stat-card .lbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+
+/* SAFETY SCORES */
+.safety-row{padding:10px 16px;border-bottom:1px solid rgba(30,45,69,.5);
+  display:flex;align-items:center;gap:10px;cursor:pointer;transition:.15s}
+.safety-row:hover{background:rgba(0,200,255,.04)}
+.safety-score-circle{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:900;flex-shrink:0;border:2px solid}
+.safety-bar-wrap{flex:1}
+.safety-bar-track{height:5px;background:#1e2d45;border-radius:3px;overflow:hidden;margin-top:4px}
+.safety-bar-fill{height:100%;border-radius:3px}
+
+/* ── MAP ── */
+#map{height:100%;width:100%;z-index:1}
+.fui-grid-overlay{
+  position:absolute;inset:0;z-index:110;pointer-events:none;opacity:.38;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(34,211,238,.18), transparent 40%),
+    radial-gradient(circle at 82% 82%, rgba(139,92,246,.16), transparent 38%),
+    repeating-linear-gradient(0deg, rgba(140,165,210,.06) 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(90deg, rgba(140,165,210,.05) 0 1px, transparent 1px 34px)
+}
+
+.hud-corner{
+  position:absolute;z-index:380;width:66px;height:66px;pointer-events:none;opacity:.6
+}
+.hud-corner.tl{top:10px;left:10px;border-top:2px solid rgba(34,211,238,.6);border-left:2px solid rgba(34,211,238,.6)}
+.hud-corner.tr{top:10px;right:10px;border-top:2px solid rgba(139,92,246,.6);border-right:2px solid rgba(139,92,246,.6)}
+.hud-corner.bl{bottom:10px;left:10px;border-bottom:2px solid rgba(34,211,238,.5);border-left:2px solid rgba(34,211,238,.5)}
+.hud-corner.br{bottom:10px;right:10px;border-bottom:2px solid rgba(244,63,94,.5);border-right:2px solid rgba(244,63,94,.5)}
+
+/* MAP OVERLAYS */
+.map-topbar{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:400;
+  background:linear-gradient(145deg,rgba(8,12,22,.92),rgba(8,12,18,.78));border:1px solid rgba(140,165,210,.26);backdrop-filter:blur(12px);
+  border-radius:14px;padding:10px 20px;display:flex;align-items:center;gap:16px;
+  white-space:nowrap;box-shadow:0 12px 36px rgba(34,211,238,.16),0 0 20px rgba(139,92,246,.1) inset}
+.map-topbar .mtitle{font-size:13px;font-weight:800;letter-spacing:-.2px}
+.map-topbar .msub{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.map-topbar .divider{width:1px;height:28px;background:var(--border)}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--success);
+  animation:pulse-dot 2s infinite;flex-shrink:0}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(0,230,118,.4)}50%{box-shadow:0 0 0 6px rgba(0,230,118,0)}}
+.map-topbar .mtitle{
+  font-size:14px;letter-spacing:.1px;text-shadow:0 0 12px rgba(34,211,238,.24);font-family:'Space Grotesk',sans-serif;font-weight:700
+}
+
+.map-legend{position:absolute;bottom:24px;right:16px;z-index:400;
+  background:rgba(8,12,18,.92);border:1px solid var(--border);backdrop-filter:blur(12px);
+  border-radius:14px;padding:14px 16px;min-width:180px;box-shadow:0 10px 28px rgba(34,211,238,.15),0 0 18px rgba(139,92,246,.08)}
+.legend-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--muted);margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:11px;margin-bottom:7px}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-pulse{animation:pulse-dot 2s infinite}
+
+.map-controls{position:absolute;top:16px;right:16px;z-index:400;
+  display:flex;flex-direction:column;gap:8px}
+.map-ctrl-btn{width:38px;height:38px;background:rgba(8,12,18,.9);border:1px solid var(--border);
+  backdrop-filter:blur(10px);border-radius:10px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--muted);transition:.2s;font-size:14px}
+.map-ctrl-btn:hover{color:var(--blue);border-color:var(--blue)}
+
+/* FLOATING CONTEXT PANELS */
+.map-data-overlay{
+  position:absolute;inset:0;z-index:360;pointer-events:none;overflow:hidden
+}
+.fui-status-rail{
+  position:absolute;left:16px;bottom:24px;z-index:390;display:flex;flex-direction:column;gap:8px
+}
+.fui-pill{
+  min-width:180px;padding:8px 10px;border-radius:12px;border:1px solid rgba(140,165,210,.24);
+  background:linear-gradient(120deg,rgba(9,13,22,.9),rgba(10,16,28,.72));backdrop-filter:blur(10px);
+  box-shadow:0 10px 20px rgba(5,10,18,.46)
+}
+.fui-pill .k{font-size:9px;color:#90a9cd;text-transform:uppercase;letter-spacing:.65px}
+.fui-pill .v{font-size:15px;font-weight:900;line-height:1.15;margin-top:3px}
+.fui-pill .v small{font-size:10px;font-weight:700;color:#87a3cc}
+.fui-pill.active{
+  border-color:rgba(34,211,238,.38);
+  box-shadow:0 0 18px rgba(34,211,238,.2),0 10px 22px rgba(5,10,18,.52)
+}
+
+.fui-insight-card{
+  position:absolute;right:66px;top:16px;z-index:392;min-width:220px;max-width:250px;
+  padding:10px 12px;border-radius:14px;border:1px solid rgba(140,165,210,.24);
+  background:linear-gradient(120deg,rgba(10,16,28,.92),rgba(11,18,33,.72));backdrop-filter:blur(10px);
+  box-shadow:0 12px 24px rgba(5,10,18,.48)
+}
+.fi-kicker{font-size:9px;color:#90a9cd;text-transform:uppercase;letter-spacing:.65px}
+.fi-title{font-size:13px;font-weight:900;margin-top:4px}
+.fi-sub{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.35}
+.fi-row{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:10px;color:#b6c7e1}
+
+.context-float-card{
+  --accent:var(--blue);--connector-height:34px;
+  position:absolute;width:220px;padding:12px 12px 10px;border-radius:16px;
+  border:1px solid rgba(140,165,210,.22);
+  background:linear-gradient(145deg,rgba(12,18,30,.78),rgba(9,14,24,.62));
+  backdrop-filter:blur(14px) saturate(130%);
+  box-shadow:0 16px 36px rgba(3,10,24,.55), 0 0 0 1px rgba(34,211,238,.05) inset;
+  transform:translate3d(var(--tx,0px),var(--ty,0px),0) perspective(700px) rotateX(6deg);
+  transform-origin:50% 100%;
+  transition:width .28s ease,box-shadow .28s ease,transform .28s ease,border-color .28s ease,opacity .2s ease;
+  pointer-events:auto;cursor:pointer
+}
+.context-float-card .cf-depth{
+  position:absolute;inset:8px 10px auto 10px;height:18px;z-index:-1;
+  border-radius:12px;background:color-mix(in srgb,var(--accent) 22%, transparent);
+  filter:blur(12px);opacity:.45;transform:translateY(60px)
+}
+.context-float-card:hover{
+  width:258px;border-color:color-mix(in srgb,var(--accent) 45%, #8aa4cc 55%);
+  box-shadow:0 24px 45px rgba(3,10,24,.62), 0 0 28px color-mix(in srgb,var(--accent) 26%, transparent);
+  transform:translate3d(var(--tx,0px),calc(var(--ty,0px) - 6px),0) perspective(700px) rotateX(2deg)
+}
+.context-float-card.is-selected{
+  border-color:color-mix(in srgb,var(--accent) 62%, #bfd3f7 38%);
+  box-shadow:0 24px 42px rgba(3,10,24,.62),0 0 28px color-mix(in srgb,var(--accent) 35%, transparent)
+}
+.context-float-card::after{
+  content:'';position:absolute;left:50%;bottom:calc(var(--connector-height) * -1);
+  width:1px;height:var(--connector-height);opacity:.7;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 65%, transparent),transparent)
+}
+.context-float-card::before{
+  content:'';position:absolute;left:50%;bottom:calc(var(--connector-height) * -1 - 6px);
+  width:10px;height:10px;border-radius:50%;transform:translateX(-50%);
+  background:color-mix(in srgb,var(--accent) 75%, #fff 25%);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%, transparent),0 0 10px color-mix(in srgb,var(--accent) 55%, transparent)
+}
+.context-float-card.is-critical{
+  border-color:rgba(244,63,94,.46);
+  box-shadow:0 16px 36px rgba(3,10,24,.58),0 0 22px rgba(244,63,94,.35)
+}
+.context-float-card.is-alert::before{animation:alert-pulse 1.8s ease infinite}
+@keyframes alert-pulse{
+  0%,100%{box-shadow:0 0 0 3px rgba(244,63,94,.22),0 0 8px rgba(244,63,94,.45)}
+  50%{box-shadow:0 0 0 8px rgba(244,63,94,0),0 0 16px rgba(244,63,94,.75)}
+}
+.cf-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cf-area{font-size:13px;font-weight:800;letter-spacing:-.1px}
+.cf-top-line{
+  height:2px;border-radius:2px;background:linear-gradient(90deg,var(--accent),transparent);margin-bottom:8px;opacity:.8
+}
+.cf-badge{
+  font-size:9px;font-weight:800;padding:2px 7px;border-radius:999px;
+  background:color-mix(in srgb,var(--accent) 16%, transparent);color:var(--accent);
+  border:1px solid color-mix(in srgb,var(--accent) 35%, transparent);text-transform:uppercase;letter-spacing:.5px
+}
+.cf-stats{
+  margin-top:9px;display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  font-size:10px;color:var(--muted)
+}
+.cf-stat strong{display:block;font-size:14px;color:var(--text);line-height:1.2}
+.cf-stat span{font-size:9px;text-transform:uppercase;letter-spacing:.45px}
+.cf-trend{margin-top:8px;padding-top:8px;border-top:1px solid rgba(140,165,210,.16)}
+.cf-trend-meta{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:6px}
+.cf-trend svg{width:100%;height:28px;display:block}
+.cf-trend path{fill:none;stroke:var(--accent);stroke-width:2.1;stroke-linecap:round}
+.cf-extra{
+  margin-top:7px;display:flex;justify-content:space-between;font-size:9px;color:#9db2d3;opacity:.88
+}
+
+/* CONTEXT SIDE DRAWER */
+.context-drawer{
+  position:absolute;top:0;right:0;z-index:420;height:100%;width:350px;
+  background:linear-gradient(180deg,rgba(8,14,24,.97),rgba(7,11,22,.94));
+  border-left:1px solid rgba(140,165,210,.2);backdrop-filter:blur(14px);
+  box-shadow:-18px 0 42px rgba(4,10,21,.58);
+  transform:translateX(100%);transition:transform .28s ease;display:flex;flex-direction:column
+}
+.context-drawer.open{transform:translateX(0)}
+.cd-head{
+  padding:16px;border-bottom:1px solid rgba(140,165,210,.18);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:10px
+}
+.cd-title{font-size:17px;font-weight:900;letter-spacing:-.2px}
+.cd-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px}
+.cd-close{
+  width:30px;height:30px;border-radius:8px;border:1px solid var(--border);
+  background:rgba(10,16,28,.8);color:var(--muted);cursor:pointer;transition:.2s
+}
+.cd-close:hover{color:var(--blue);border-color:var(--blue)}
+.cd-body{padding:14px 16px 18px;overflow-y:auto}
+.cd-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cd-kpi{
+  padding:10px 11px;border:1px solid rgba(140,165,210,.2);border-radius:12px;
+  background:rgba(15,22,36,.58)
+}
+.cd-kpi .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.45px}
+.cd-kpi .v{font-size:20px;font-weight:900;line-height:1.2;margin-top:4px}
+.cd-note{
+  margin-top:12px;padding:10px;border-radius:10px;border:1px solid rgba(140,165,210,.18);
+  background:rgba(7,13,24,.5);font-size:11px;color:#b8c8e3;line-height:1.45
+}
+.cd-list{margin-top:12px}
+.cd-item{
+  display:flex;justify-content:space-between;gap:8px;padding:8px 10px;margin-bottom:7px;
+  border-radius:9px;background:rgba(13,20,34,.64);border:1px solid rgba(140,165,210,.16);font-size:11px
+}
+
+/* POPUP STYLES (injected via JS) */
+.lf-popup .lp-header{padding:10px 12px;border-bottom:1px solid rgba(30,45,69,.8)}
+.lf-popup .lp-title{font-size:13px;font-weight:800;margin-bottom:4px}
+.lf-popup .lp-code{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.lf-popup .lp-body{padding:10px 12px}
+.lf-popup .lp-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}
+.lf-popup .lp-label{color:var(--muted)}
+.lf-popup .lp-val{font-weight:700;text-align:right;max-width:180px}
+
+/* CHART MINI */
+.mini-chart-wrap{padding:12px 16px 8px;border-top:1px solid var(--border)}
+.mini-chart-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--muted);margin-bottom:8px}
+
+/* MODAL */
+.details-modal .modal-content{background:var(--card);border:1px solid var(--border);
+  border-radius:16px;color:var(--text)}
+.details-modal .modal-header{border-bottom:1px solid var(--border);padding:18px 22px}
+.details-modal .modal-body{padding:22px}
+.dt-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--muted);margin-bottom:4px}
+.dt-val{font-size:13px;font-weight:600;margin-bottom:14px}
+.crime-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;
+  border-radius:20px;font-size:11px;font-weight:800;border:1px solid}
+
+@media(max-width:768px){
+  .left-panel{position:absolute;left:0;top:0;height:100%;transform:translateX(-100%);transition:.3s;z-index:500}
+  .left-panel.open{transform:translateX(0)}
+  .mobile-toggle{display:flex!important}
+}
+.mobile-toggle{display:none;position:absolute;top:16px;left:16px;z-index:401;
+  width:40px;height:40px;background:rgba(8,12,18,.9);border:1px solid var(--border);
+  border-radius:10px;align-items:center;justify-content:center;cursor:pointer;color:var(--text)}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ═══════════════ LEFT PANEL ═══════════════ -->
+  <div class="left-panel" id="leftPanel">
+
+    <!-- TOP BRAND + SEARCH + LAYERS -->
+    <div class="panel-top">
+      <div class="brand">
+        <div class="brand-icon"><i class="fa fa-city text-white"></i></div>
+        <div>
+          <div class="brand-name">SmartCity</div>
+          <div class="brand-sub">CITY INTELLIGENCE MAP</div>
+        </div>
+        <a href="admin_dashboard.html" class="ms-auto" style="color:var(--muted);font-size:12px;text-decoration:none">
+          <i class="fa fa-arrow-left me-1"></i>Dashboard
+        </a>
+      </div>
+
+      <div class="map-search">
+        <input type="text" placeholder="Search area, ward, code..." id="panelSearch" oninput="filterIncidents()">
+        <i class="fa fa-search"></i>
+      </div>
+
+      <div class="left-intel-card">
+        <div class="li-head">
+          <div class="li-title">Operations Pulse</div>
+          <div class="li-badge">LIVE/24x7</div>
+        </div>
+        <div class="li-grid">
+          <div class="li-cell">
+            <div class="k">Escalations</div>
+            <div class="v" id="leftEscalations">0</div>
+          </div>
+          <div class="li-cell">
+            <div class="k">Open Cases</div>
+            <div class="v" id="leftOpenCases">0</div>
+          </div>
+          <div class="li-cell">
+            <div class="k">Response SLA</div>
+            <div class="v" id="leftSla">0h</div>
+          </div>
+          <div class="li-cell">
+            <div class="k">Focus Area</div>
+            <div class="v" id="leftFocusArea">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer-row" id="layerRow">
+        <button class="layer-btn active-comp" id="btnComp" onclick="toggleLayer('complaints')">
+          <i class="fa fa-circle-dot"></i>Complaints
+        </button>
+        <button class="layer-btn active-crime" id="btnCrime" onclick="toggleLayer('crimes')">
+          <i class="fa fa-triangle-exclamation"></i>Crimes
+        </button>
+        <button class="layer-btn active-heat" id="btnHeat" onclick="toggleLayer('heat')">
+          <i class="fa fa-fire"></i>Heatmap
+        </button>
+        <button class="layer-btn" id="btnPred" onclick="toggleLayer('predictions')">
+          <i class="fa fa-bullseye"></i>Predicted Risk
+        </button>
+        <button class="layer-btn active-safe" id="btnSafe" onclick="toggleLayer('safety')">
+          <i class="fa fa-shield"></i>Safety
+        </button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="panel-tabs">
+      <button class="ptab active" onclick="switchTab('incidents')">Incidents</button>
+      <button class="ptab" onclick="switchTab('stats')">Analytics</button>
+      <button class="ptab" onclick="switchTab('safety')">Safety</button>
+    </div>
+
+    <!-- TAB: INCIDENTS LIST -->
+    <div class="panel-body" id="tab-incidents">
+      <div id="incidentList"><!-- JS rendered --></div>
+    </div>
+
+    <!-- TAB: ANALYTICS -->
+    <div class="panel-body" id="tab-stats" style="display:none">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="val" style="color:var(--blue)" id="stat-complaints">523</div>
+          <div class="lbl">Total Complaints</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" style="color:var(--crime)" id="stat-crimes">80</div>
+          <div class="lbl">Crime Incidents</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" style="color:var(--warn)" id="stat-hotspot">5</div>
+          <div class="lbl">Hotspot Zones</div>
+        </div>
+        <div class="stat-card">
+          <div class="val" style="color:var(--success)" id="stat-safe">62</div>
+          <div class="lbl">Avg Safety Score</div>
+        </div>
+      </div>
+
+      <div class="mini-chart-wrap">
+        <div class="mini-chart-title">Crimes by Type</div>
+        <canvas id="crimeTypeChart" height="160"></canvas>
+      </div>
+
+      <div class="mini-chart-wrap" style="margin-top:8px">
+        <div class="mini-chart-title">Complaints by Category</div>
+        <canvas id="compCatChart" height="160"></canvas>
+      </div>
+
+      <div class="mini-chart-wrap" style="margin-top:8px">
+        <div class="mini-chart-title">Crimes by Time of Day</div>
+        <canvas id="timeChart" height="120"></canvas>
+      </div>
+    </div>
+
+    <!-- TAB: SAFETY SCORES -->
+    <div class="panel-body" id="tab-safety" style="display:none">
+      <div style="padding:10px 16px 6px">
+        <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">
+          Ward Safety Rankings (0–100)
+        </div>
+      </div>
+      <div id="safetyList"><!-- JS rendered --></div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ MAP AREA ═══════════════ -->
+  <div class="map-wrap">
+    <div class="fui-grid-overlay"></div>
+    <div class="hud-corner tl"></div>
+    <div class="hud-corner tr"></div>
+    <div class="hud-corner bl"></div>
+    <div class="hud-corner br"></div>
+
+    <!-- Mobile toggle -->
+    <div class="mobile-toggle" id="mobileToggle" onclick="document.getElementById('leftPanel').classList.toggle('open')">
+      <i class="fa fa-bars"></i>
+    </div>
+
+    <!-- Top bar -->
+    <div class="map-topbar">
+      <div class="live-dot"></div>
+      <div>
+        <div class="mtitle">City Intelligence Map</div>
+        <div class="msub">Pune Metropolitan Area • Live Data</div>
+      </div>
+      <div class="divider"></div>
+      <div style="text-align:center">
+        <div style="font-size:18px;font-weight:900;color:var(--blue)" id="mapTotalComp">523</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase">Complaints</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:18px;font-weight:900;color:var(--crime)" id="mapTotalCrime">80</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase">Crimes</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:18px;font-weight:900;color:var(--warn)" id="mapHotspots">5</div>
+        <div style="font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase">Hotspots</div>
+      </div>
+    </div>
+
+    <!-- Map Controls -->
+    <div class="map-controls">
+      <div class="map-ctrl-btn" onclick="map.setView([18.5204,73.8567],13)" title="Reset View"><i class="fa fa-crosshairs"></i></div>
+      <div class="map-ctrl-btn" onclick="map.zoomIn()" title="Zoom In"><i class="fa fa-plus"></i></div>
+      <div class="map-ctrl-btn" onclick="map.zoomOut()" title="Zoom Out"><i class="fa fa-minus"></i></div>
+      <div class="map-ctrl-btn" onclick="toggleMapStyle()" title="Toggle Map Style" id="styleBtn"><i class="fa fa-moon"></i></div>
+    </div>
+    <div class="fui-insight-card">
+      <div class="fi-kicker">Realtime intelligence</div>
+      <div class="fi-title" id="fiTitle">City baseline stable</div>
+      <div class="fi-sub" id="fiSub">Hover a floating area card to inspect trend. Click to drill into local details.</div>
+      <div class="fi-row"><span>Priority area</span><strong id="fiArea">—</strong></div>
+      <div class="fi-row"><span>Trend pressure</span><strong id="fiTrend">—</strong></div>
+    </div>
+
+    <!-- Legend -->
+    <div class="map-legend">
+      <div class="legend-title">Map Legend</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff3d5a"></div>Crime Incident</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#00c8ff"></div>Civic Complaint</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff3d5a;animation:pulse-dot 1.5s infinite;box-shadow:0 0 0 0 rgba(255,61,90,.4)"></div>Active Hotspot</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#00e676"></div>Safe Zone (80+)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ffb300"></div>Moderate Risk</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff3d5a"></div>High Risk</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>Predicted High-Risk Zones</div>
+    </div>
+
+    <!-- MAP ELEMENT -->
+    <div id="map"></div>
+    <div class="fui-status-rail">
+      <div class="fui-pill" id="pillCritical">
+        <div class="k">Critical Pressure</div>
+        <div class="v" id="hudCriticalCount">0 <small>issues</small></div>
+      </div>
+      <div class="fui-pill" id="pillAlert">
+        <div class="k">Active Alerts</div>
+        <div class="v" id="hudAlertCount">0 <small>zones</small></div>
+      </div>
+      <div class="fui-pill" id="pillResolution">
+        <div class="k">Mean Resolution</div>
+        <div class="v" id="hudMeanResolution">0h <small>city avg</small></div>
+      </div>
+    </div>
+    <div class="map-data-overlay" id="mapDataOverlay"></div>
+
+    <aside class="context-drawer" id="contextDrawer">
+      <div class="cd-head">
+        <div>
+          <div class="cd-title" id="cdArea">Area</div>
+          <div class="cd-sub" id="cdCoords">—</div>
+        </div>
+        <button class="cd-close" id="cdCloseBtn" aria-label="Close panel"><i class="fa fa-xmark"></i></button>
+      </div>
+      <div class="cd-body">
+        <div class="cd-grid">
+          <div class="cd-kpi"><div class="k">Total Complaints</div><div class="v" id="cdComplaints">0</div></div>
+          <div class="cd-kpi"><div class="k">Critical Issues</div><div class="v" id="cdCritical">0</div></div>
+          <div class="cd-kpi"><div class="k">Avg Resolution</div><div class="v" id="cdResolution">0h</div></div>
+          <div class="cd-kpi"><div class="k">Trend</div><div class="v" id="cdTrend">0%</div></div>
+        </div>
+        <div class="cd-note" id="cdNote">Select a floating panel to see area-level intelligence details.</div>
+        <div class="cd-list" id="cdList"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal fade details-modal" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <div id="modalBadge" class="crime-badge mb-2">Type</div>
+          <h6 class="modal-title fw-bold mb-0" id="modalTitle">—</h6>
+          <div id="modalCode" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)"></div>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row" id="modalBody">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEAFLET HEATMAP PLUGIN (inline, simplified) -->
+<script>
+// ─── Simplified heatmap renderer using canvas circles ───
+// (Using Leaflet's native circle markers for max compatibility without CDN dependency)
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  DATA — Pune Ward Locations (20 wards)
+// ══════════════════════════════════════════════════════
+const WARDS = [
+  {id:1, name:'Koregaon Park',   ward:'W01', zone:'East',    lat:18.5362,lng:73.8938},
+  {id:2, name:'Kothrud',         ward:'W02', zone:'West',    lat:18.5074,lng:73.8077},
+  {id:3, name:'Hadapsar',        ward:'W03', zone:'East',    lat:18.5018,lng:73.9263},
+  {id:4, name:'Aundh',           ward:'W04', zone:'North',   lat:18.5590,lng:73.8075},
+  {id:5, name:'Shivajinagar',    ward:'W05', zone:'Central', lat:18.5308,lng:73.8474},
+  {id:6, name:'Pimpri',          ward:'W06', zone:'North',   lat:18.6270,lng:73.7956},
+  {id:7, name:'Chinchwad',       ward:'W07', zone:'North',   lat:18.6453,lng:73.7834},
+  {id:8, name:'Yerawada',        ward:'W08', zone:'East',    lat:18.5547,lng:73.9006},
+  {id:9, name:'Bibwewadi',       ward:'W09', zone:'South',   lat:18.4743,lng:73.8561},
+  {id:10,name:'Katraj',          ward:'W10', zone:'South',   lat:18.4530,lng:73.8671},
+  {id:11,name:'Warje',           ward:'W11', zone:'West',    lat:18.4894,lng:73.7945},
+  {id:12,name:'Baner',           ward:'W12', zone:'West',    lat:18.5590,lng:73.7868},
+  {id:13,name:'Viman Nagar',     ward:'W13', zone:'East',    lat:18.5679,lng:73.9143},
+  {id:14,name:'Kharadi',         ward:'W14', zone:'East',    lat:18.5517,lng:73.9414},
+  {id:15,name:'Deccan',          ward:'W15', zone:'Central', lat:18.5196,lng:73.8439},
+  {id:16,name:'Swargate',        ward:'W16', zone:'Central', lat:18.5018,lng:73.8573},
+  {id:17,name:'Magarpatta',      ward:'W17', zone:'South',   lat:18.5127,lng:73.9286},
+  {id:18,name:'Hinjewadi',       ward:'W18', zone:'West',    lat:18.5912,lng:73.7389},
+  {id:19,name:'Wakad',           ward:'W19', zone:'West',    lat:18.5990,lng:73.7667},
+  {id:20,name:'Pimple Saudagar', ward:'W20', zone:'North',   lat:18.6019,lng:73.7995}
+];
+
+const API_BASE = 'http://127.0.0.1:5000';
+
+// ── CRIME INCIDENTS ──
+const CRIMES = [
+  {id:'CRM-2024-00001',type:'Theft / Robbery',   typeCode:'THEFT',   severity:'high',    lat:18.5030,lng:73.9270,area:'Hadapsar',ward:'W03',   desc:'Motorcycle theft from parking lot',       status:'fir_filed',date:'2024-10-15',time:'21:30',victims:1,icon:'🎭'},
+  {id:'CRM-2024-00002',type:'Vehicle Theft',      typeCode:'VEH',     severity:'moderate',lat:18.5015,lng:73.9250,area:'Hadapsar',ward:'W03',   desc:'Bike stolen outside restaurant',          status:'reported', date:'2024-10-18',time:'19:00',victims:1,icon:'🚗'},
+  {id:'CRM-2024-00003',type:'Chain Snatching',    typeCode:'SNATCH',  severity:'high',    lat:18.5045,lng:73.9290,area:'Hadapsar',ward:'W03',   desc:'Chain snatching from elderly woman',      status:'fir_filed',date:'2024-10-20',time:'08:15',victims:1,icon:'⛓️'},
+  {id:'CRM-2024-00004',type:'Assault',            typeCode:'ASSAULT', severity:'high',    lat:18.5060,lng:73.9260,area:'Hadapsar',ward:'W03',   desc:'Two men brawl outside tea stall',         status:'resolved', date:'2024-10-22',time:'23:00',victims:2,icon:'👊'},
+  {id:'CRM-2024-00005',type:'Traffic Accident',   typeCode:'TRAFFIC', severity:'moderate',lat:18.5025,lng:73.9280,area:'Hadapsar',ward:'W03',   desc:'Hit and run accident near junction',      status:'fir_filed',date:'2024-10-25',time:'07:30',victims:1,icon:'🚗'},
+  {id:'CRM-2024-00006',type:'Cybercrime / Fraud', typeCode:'FRAUD',   severity:'high',    lat:18.5080,lng:73.9240,area:'Hadapsar',ward:'W03',   desc:'Online banking fraud Rs.85,000',          status:'fir_filed',date:'2024-11-01',time:null,  victims:1,icon:'💻'},
+  {id:'CRM-2024-00007',type:'House Break-In',     typeCode:'BURGLARY',severity:'critical',lat:18.5020,lng:73.9265,area:'Hadapsar',ward:'W03',   desc:'House burglary while family on vacation', status:'chargesheet',date:'2024-11-05',time:'02:00',victims:1,icon:'🏠'},
+  {id:'CRM-2024-00008',type:'Domestic Violence',  typeCode:'DOM_VIO', severity:'critical',lat:18.5070,lng:73.9230,area:'Hadapsar',ward:'W03',   desc:'Domestic violence, neighbour complaint',  status:'fir_filed',date:'2024-11-08',time:'22:30',victims:1,icon:'⚠️'},
+  {id:'CRM-2024-00011',type:'Harassment',         typeCode:'HARASS',  severity:'high',    lat:18.5310,lng:73.8475,area:'Shivajinagar',ward:'W05',desc:'Eve teasing near college gate',          status:'fir_filed',date:'2024-10-12',time:'17:00',victims:1,icon:'🚨'},
+  {id:'CRM-2024-00012',type:'Drunk & Disorderly', typeCode:'DRUNK',   severity:'low',     lat:18.5295,lng:73.8490,area:'Shivajinagar',ward:'W05',desc:'Drunk youth creating nuisance near pub', status:'resolved', date:'2024-10-14',time:'23:30',victims:3,icon:'🍷'},
+  {id:'CRM-2024-00013',type:'Vehicle Theft',      typeCode:'VEH',     severity:'moderate',lat:18.5320,lng:73.8460,area:'Shivajinagar',ward:'W05',desc:'Two-wheeler theft from station',         status:'fir_filed',date:'2024-10-19',time:'09:00',victims:1,icon:'🚗'},
+  {id:'CRM-2024-00015',type:'Assault',            typeCode:'ASSAULT', severity:'high',    lat:18.5300,lng:73.8480,area:'Shivajinagar',ward:'W05',desc:'Road rage assault near Deccan',          status:'chargesheet',date:'2024-10-28',time:'18:00',victims:2,icon:'👊'},
+  {id:'CRM-2024-00016',type:'Theft / Robbery',    typeCode:'THEFT',   severity:'high',    lat:18.4750,lng:73.8565,area:'Bibwewadi',  ward:'W09',desc:'Mobile phone snatching',                status:'fir_filed',date:'2024-10-10',time:'20:00',victims:1,icon:'🎭'},
+  {id:'CRM-2024-00017',type:'Chain Snatching',    typeCode:'SNATCH',  severity:'high',    lat:18.4740,lng:73.8555,area:'Bibwewadi',  ward:'W09',desc:'Chain snatching from scooter rider',     status:'fir_filed',date:'2024-10-13',time:'07:00',victims:1,icon:'⛓️'},
+  {id:'CRM-2024-00018',type:'Drug Trafficking',   typeCode:'DRUGS',   severity:'critical',lat:18.4760,lng:73.8570,area:'Bibwewadi',  ward:'W09',desc:'Drug peddling complaint near school',    status:'fir_filed',date:'2024-10-16',time:'15:00',victims:1,icon:'💊'},
+  {id:'CRM-2024-00019',type:'House Break-In',     typeCode:'BURGLARY',severity:'critical',lat:18.4735,lng:73.8545,area:'Bibwewadi',  ward:'W09',desc:'Burglary during Diwali holidays',        status:'chargesheet',date:'2024-11-03',time:'03:00',victims:1,icon:'🏠'},
+  {id:'CRM-2024-00020',type:'Assault',            typeCode:'ASSAULT', severity:'high',    lat:18.4770,lng:73.8560,area:'Bibwewadi',  ward:'W09',desc:'Gang fight over land dispute',           status:'fir_filed',date:'2024-11-06',time:'21:00',victims:4,icon:'👊'},
+  {id:'CRM-2024-00022',type:'Vehicle Theft',      typeCode:'VEH',     severity:'moderate',lat:18.5590,lng:73.7870,area:'Baner',      ward:'W12',desc:'Car theft from office campus',           status:'fir_filed',date:'2024-10-17',time:'20:30',victims:1,icon:'🚗'},
+  {id:'CRM-2024-00023',type:'Cybercrime / Fraud', typeCode:'FRAUD',   severity:'high',    lat:18.5600,lng:73.7855,area:'Baner',      ward:'W12',desc:'Online investment fraud Rs.3 lakhs',     status:'fir_filed',date:'2024-10-22',time:null,  victims:1,icon:'💻'},
+  {id:'CRM-2024-00030',type:'Vehicle Theft',      typeCode:'VEH',     severity:'moderate',lat:18.5595,lng:73.8080,area:'Aundh',      ward:'W04',desc:'SUV broken into, laptop stolen',          status:'fir_filed',date:'2024-10-15',time:'18:00',victims:1,icon:'🚗'},
+  {id:'CRM-2024-00034',type:'Drug Trafficking',   typeCode:'DRUGS',   severity:'critical',lat:18.6275,lng:73.7960,area:'Pimpri',     ward:'W06',desc:'Drug trafficking, 3 arrested',           status:'chargesheet',date:'2024-10-20',time:'00:30',victims:3,icon:'💊'},
+  {id:'CRM-2024-00035',type:'Theft / Robbery',    typeCode:'THEFT',   severity:'high',    lat:18.6265,lng:73.7950,area:'Pimpri',     ward:'W06',desc:'Cash snatching from elderly person',      status:'fir_filed',date:'2024-10-24',time:'16:00',victims:1,icon:'🎭'},
+  {id:'CRM-2024-00047',type:'Drug Trafficking',   typeCode:'DRUGS',   severity:'critical',lat:18.4535,lng:73.8675,area:'Katraj',     ward:'W10',desc:'Drug supply chain bust, 5 arrested',      status:'chargesheet',date:'2024-10-18',time:'03:00',victims:5,icon:'💊'},
+  {id:'CRM-2024-00053',type:'Cybercrime / Fraud', typeCode:'FRAUD',   severity:'high',    lat:18.5915,lng:73.7391,area:'Hinjewadi',  ward:'W18',desc:'Tech employee scammed Rs.5 lakhs',        status:'fir_filed',date:'2024-11-02',time:null,  victims:1,icon:'💻'},
+  {id:'CRM-2024-00056',type:'Drunk & Disorderly', typeCode:'DRUNK',   severity:'low',     lat:18.5365,lng:73.8940,area:'Koregaon Park',ward:'W01',desc:'Drunk brawl outside nightclub',         status:'resolved', date:'2024-10-30',time:'01:00',victims:4,icon:'🍷'},
+  {id:'CRM-2024-00057',type:'Drug Trafficking',   typeCode:'DRUGS',   severity:'critical',lat:18.5358,lng:73.8935,area:'Koregaon Park',ward:'W01',desc:'Drug possession, 2 arrested',           status:'chargesheet',date:'2024-11-04',time:'23:00',victims:2,icon:'💊'},
+  {id:'CRM-2024-00061',type:'House Break-In',     typeCode:'BURGLARY',severity:'critical',lat:18.6457,lng:73.7838,area:'Chinchwad',  ward:'W07',desc:'Burglary, Rs.1.5 lakh cash stolen',       status:'fir_filed',date:'2024-10-25',time:'04:00',victims:1,icon:'🏠'},
+  {id:'CRM-2024-00066',type:'Chain Snatching',    typeCode:'SNATCH',  severity:'high',    lat:18.6020,lng:73.8000,area:'Pimple Saudagar',ward:'W20',desc:'Chain snatching during morning walk',   status:'fir_filed',date:'2024-11-07',time:'06:30',victims:1,icon:'⛓️'},
+  {id:'CRM-2024-00071',type:'Theft / Robbery',    typeCode:'THEFT',   severity:'high',    lat:18.5020,lng:73.8576,area:'Swargate',   ward:'W16',desc:'Luggage theft at bus station',           status:'reported', date:'2024-11-10',time:'11:00',victims:1,icon:'🎭'},
+  {id:'CRM-2024-00073',type:'Assault',            typeCode:'ASSAULT', severity:'high',    lat:18.5025,lng:73.8580,area:'Swargate',   ward:'W16',desc:'Public brawl, 5 arrested',               status:'chargesheet',date:'2024-11-12',time:'22:00',victims:5,icon:'👊'},
+];
+
+// ── COMPLAINT SAMPLES ──
+const COMPLAINTS = [
+  {id:'CMP-2024-00015',cat:'Water Leakage',priority:'Critical',color:'#ff3d5a',lat:18.5030+.003,lng:73.9270-.002,area:'Hadapsar',status:'in_progress',hotspot:true},
+  {id:'CMP-2024-00042',cat:'Sewage Overflow',priority:'Critical',color:'#ff3d5a',lat:18.4743-.001,lng:73.8561+.002,area:'Bibwewadi',status:'pending',hotspot:true},
+  {id:'CMP-2024-00089',cat:'Pothole/Road',priority:'High',color:'#ff7800',lat:18.5308-.002,lng:73.8474+.001,area:'Shivajinagar',status:'pending',hotspot:false},
+  {id:'CMP-2024-00124',cat:'Traffic Signal',priority:'Critical',color:'#ff3d5a',lat:18.5590-.001,lng:73.8075-.001,area:'Aundh',status:'in_progress',hotspot:false},
+  {id:'CMP-2024-00201',cat:'Electricity Outage',priority:'Critical',color:'#ff3d5a',lat:18.5517+.001,lng:73.9414+.001,area:'Kharadi',status:'pending',hotspot:false},
+  {id:'CMP-2024-00287',cat:'Garbage/Waste',priority:'High',color:'#ff7800',lat:18.5590+.002,lng:73.7868+.002,area:'Baner',status:'pending',hotspot:true},
+  {id:'CMP-2024-00341',cat:'Water Supply',priority:'High',color:'#ff7800',lat:18.5074+.001,lng:73.8077-.001,area:'Kothrud',status:'in_progress',hotspot:false},
+  {id:'CMP-2024-00398',cat:'Street Light',priority:'Medium',color:'#ffb300',lat:18.5547-.002,lng:73.9006+.001,area:'Yerawada',status:'pending',hotspot:false},
+  {id:'CMP-2024-00421',cat:'Illegal Dumping',priority:'High',color:'#ff7800',lat:18.4530+.001,lng:73.8671-.001,area:'Katraj',status:'pending',hotspot:true},
+  {id:'CMP-2024-00467',cat:'Pothole/Road',priority:'Medium',color:'#ffb300',lat:18.6270+.001,lng:73.7956+.001,area:'Pimpri',status:'resolved',hotspot:false},
+  {id:'CMP-2024-00498',cat:'Sewage Overflow',priority:'Critical',color:'#ff3d5a',lat:18.5127-.001,lng:73.9286-.001,area:'Magarpatta',status:'pending',hotspot:true},
+  {id:'CMP-2024-00503',cat:'Water Leakage',priority:'High',color:'#ff7800',lat:18.5912+.001,lng:73.7389+.002,area:'Hinjewadi',status:'in_progress',hotspot:false},
+  {id:'CMP-2024-00512',cat:'Street Light',priority:'Low',color:'#00e676',lat:18.6453+.001,lng:73.7834-.001,area:'Chinchwad',status:'resolved',hotspot:false},
+  {id:'CMP-2024-00519',cat:'Stray Animals',priority:'High',color:'#ff7800',lat:18.5196+.002,lng:73.8439+.001,area:'Deccan',status:'pending',hotspot:false},
+  {id:'CMP-2024-00523',cat:'Park Damage',priority:'Medium',color:'#ffb300',lat:18.5990-.001,lng:73.7667+.001,area:'Wakad',status:'pending',hotspot:false},
+];
+
+// ── SAFETY SCORES ──
+const SAFETY = [
+  {ward:'W04',area:'Aundh',       score:78,risk:'low',      crimes30d:3,comp30d:12},
+  {ward:'W12',area:'Baner',       score:72,risk:'low',      crimes30d:4,comp30d:17},
+  {ward:'W13',area:'Viman Nagar', score:71,risk:'low',      crimes30d:4,comp30d:14},
+  {ward:'W08',area:'Yerawada',    score:68,risk:'moderate', crimes30d:5,comp30d:16},
+  {ward:'W18',area:'Hinjewadi',   score:67,risk:'moderate', crimes30d:5,comp30d:11},
+  {ward:'W02',area:'Kothrud',     score:65,risk:'moderate', crimes30d:6,comp30d:18},
+  {ward:'W19',area:'Wakad',       score:64,risk:'moderate', crimes30d:6,comp30d:13},
+  {ward:'W15',area:'Deccan',      score:63,risk:'moderate', crimes30d:6,comp30d:19},
+  {ward:'W01',area:'Koregaon Park',score:61,risk:'moderate',crimes30d:7,comp30d:15},
+  {ward:'W05',area:'Shivajinagar',score:58,risk:'moderate', crimes30d:8,comp30d:22},
+  {ward:'W07',area:'Chinchwad',   score:55,risk:'moderate', crimes30d:9,comp30d:16},
+  {ward:'W17',area:'Magarpatta',  score:54,risk:'moderate', crimes30d:9,comp30d:20},
+  {ward:'W20',area:'Pimple Saud.',score:52,risk:'moderate', crimes30d:10,comp30d:17},
+  {ward:'W11',area:'Warje',       score:50,risk:'moderate', crimes30d:10,comp30d:21},
+  {ward:'W14',area:'Kharadi',     score:48,risk:'high',     crimes30d:11,comp30d:22},
+  {ward:'W16',area:'Swargate',    score:46,risk:'high',     crimes30d:12,comp30d:24},
+  {ward:'W06',area:'Pimpri',      score:40,risk:'high',     crimes30d:14,comp30d:26},
+  {ward:'W10',area:'Katraj',      score:38,risk:'high',     crimes30d:15,comp30d:28},
+  {ward:'W09',area:'Bibwewadi',   score:32,risk:'high',     crimes30d:17,comp30d:31},
+  {ward:'W03',area:'Hadapsar',    score:22,risk:'critical', crimes30d:24,comp30d:42},
+].sort((a,b)=>b.score-a.score);
+
+// ══════════════════════════════════════════════════════
+//  MAP INITIALIZATION
+// ══════════════════════════════════════════════════════
+const TILE_DARK  = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const TILE_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+let darkMode = true;
+
+const map = L.map('map', {
+  center:[18.5204, 73.8567],
+  zoom:12,
+  zoomControl:false,
+  attributionControl:true
+});
+
+let tileLayer = L.tileLayer(TILE_DARK, {
+  attribution:'© OpenStreetMap contributors © CARTO',
+  subdomains:'abcd',maxZoom:19
+}).addTo(map);
+
+// Layer groups
+const layerGroups = {
+  complaints: L.layerGroup().addTo(map),
+  crimes:     L.layerGroup().addTo(map),
+  heat:       L.layerGroup().addTo(map),
+  predictions:L.layerGroup(),
+  safety:     L.layerGroup()   // not shown by default
+};
+
+const layerState = {complaints:true, crimes:true, heat:true, predictions:false, safety:false};
+let predictionHotspots = [];
+
+// ── FLOATING CONTEXT DATA ──
+const CONTEXT_PANEL_SEEDS = [
+  {lat:18.52,   lng:73.85,   area:'Hadapsar',    complaints:28, critical:11, avgResolutionHours:22, trend:[7,9,8,10,12,11,13]},
+  {lat:18.4743, lng:73.8561, area:'Bibwewadi',   complaints:24, critical:9,  avgResolutionHours:19, trend:[5,6,7,8,7,9,10]},
+  {lat:18.5308, lng:73.8474, area:'Shivajinagar',complaints:18, critical:6,  avgResolutionHours:14, trend:[4,5,5,6,7,6,8]},
+  {lat:18.5590, lng:73.7868, area:'Baner',       complaints:15, critical:4,  avgResolutionHours:12, trend:[3,3,4,5,4,5,6]},
+  {lat:18.5517, lng:73.9414, area:'Kharadi',     complaints:21, critical:7,  avgResolutionHours:16, trend:[4,5,7,6,8,7,9]},
+  {lat:18.6270, lng:73.7956, area:'Pimpri',      complaints:19, critical:8,  avgResolutionHours:17, trend:[3,4,5,6,8,7,8]}
+];
+
+let contextualPanels = [];
+let contextRafId = null;
+let contextEventsBound = false;
+let activeContextIndex = null;
+
+function normalizedTrend(points){
+  if(!Array.isArray(points) || !points.length) return [3,4,5,4,6,5,7];
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const span = Math.max(1, max-min);
+  return points.map(v=>((v-min)/span)*18+5);
+}
+
+function sparklinePath(points){
+  const values = normalizedTrend(points);
+  const step = 196 / Math.max(1, values.length-1);
+  return values.map((v,i)=>`${i===0?'M':'L'} ${i*step} ${24-v}`).join(' ');
+}
+
+function getAreaBreakdown(area){
+  const comp = COMPLAINTS.filter(c=>String(c.area||'').toLowerCase()===area.toLowerCase());
+  const crimes = CRIMES.filter(c=>String(c.area||'').toLowerCase()===area.toLowerCase());
+  const criticalFromComplaints = comp.filter(c=>String(c.priority||'').toLowerCase()==='critical' || c.hotspot).length;
+  const criticalFromCrimes = crimes.filter(c=>['critical','high'].includes(String(c.severity||'').toLowerCase())).length;
+  const byCategory = {};
+  comp.forEach(c=>{ byCategory[c.cat] = (byCategory[c.cat]||0)+1; });
+  const topCategories = Object.entries(byCategory).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  return {
+    complaintCount: comp.length,
+    crimeCount: crimes.length,
+    criticalCount: criticalFromComplaints + criticalFromCrimes,
+    topCategories
+  };
+}
+
+function deriveContextPanels(){
+  contextualPanels = CONTEXT_PANEL_SEEDS.map(seed=>{
+    const breakdown = getAreaBreakdown(seed.area);
+    const totalComplaints = Math.max(seed.complaints, seed.complaints + breakdown.complaintCount);
+    const critical = Math.max(seed.critical, seed.critical + breakdown.criticalCount);
+    const avgResolution = Math.max(8, Math.round(seed.avgResolutionHours + breakdown.criticalCount*0.6));
+    const trendDelta = Math.round((((seed.trend.at(-1) || 1) - (seed.trend[0] || 1)) / Math.max(1, seed.trend[0] || 1))*100);
+    const alertActive = critical >= 10;
+    const accent = critical >= 10 ? '#f43f5e' : critical >= 6 ? '#8b5cf6' : '#22d3ee';
+    return {...seed, breakdown, complaints:totalComplaints, critical, avgResolutionHours:avgResolution, trendDelta, alertActive, accent};
+  }).sort((a,b)=>b.critical-a.critical);
+}
+
+function contextPanelMarkup(panel){
+  const trendColor = panel.accent;
+  return `
+    <div class="cf-depth"></div>
+    <div class="cf-top-line"></div>
+    <div class="cf-head">
+      <div class="cf-area">${panel.area}</div>
+      <span class="cf-badge">${panel.critical >= 10 ? 'critical' : 'watch'}</span>
+    </div>
+    <div class="cf-stats">
+      <div class="cf-stat">
+        <strong>${panel.complaints}</strong>
+        <span>Complaints</span>
+      </div>
+      <div class="cf-stat">
+        <strong>${panel.critical}</strong>
+        <span>Critical</span>
+      </div>
+      <div class="cf-stat">
+        <strong>${panel.avgResolutionHours}h</strong>
+        <span>Avg Resolve</span>
+      </div>
+      <div class="cf-stat">
+        <strong style="color:${panel.trendDelta>0?'#f43f5e':'#22c55e'}">${panel.trendDelta>0?'+':''}${panel.trendDelta}%</strong>
+        <span>7d Trend</span>
+      </div>
+    </div>
+    <div class="cf-trend">
+      <div class="cf-trend-meta"><span>Last 7 days</span><span>${panel.alertActive ? 'Active alerts' : 'Stable'}</span></div>
+      <svg viewBox="0 0 196 24" aria-hidden="true"><path d="${sparklinePath(panel.trend)}" style="stroke:${trendColor}"></path></svg>
+    </div>
+    <div class="cf-extra">
+      <span>Crimes: ${panel.breakdown.crimeCount}</span>
+      <span>${panel.breakdown.topCategories[0]?.[0] || 'Mixed'}</span>
+    </div>
+  `;
+}
+
+function updateFuiHudStats(){
+  const criticalCrimes = CRIMES.filter(c=>['critical','high'].includes(String(c.severity||'').toLowerCase())).length;
+  const criticalComplaints = COMPLAINTS.filter(c=>String(c.priority||'').toLowerCase()==='critical' || c.hotspot).length;
+  const totalCritical = criticalCrimes + criticalComplaints;
+  const alertZones = contextualPanels.filter(p=>p.alertActive).length;
+  const openCases = COMPLAINTS.filter(c=>String(c.status||'').toLowerCase()!=='resolved').length;
+  const avgResolution = contextualPanels.length
+    ? Math.round(contextualPanels.reduce((sum,p)=>sum+p.avgResolutionHours,0)/contextualPanels.length)
+    : 0;
+
+  document.getElementById('hudCriticalCount').innerHTML = `${totalCritical} <small>issues</small>`;
+  document.getElementById('hudAlertCount').innerHTML = `${alertZones} <small>zones</small>`;
+  document.getElementById('hudMeanResolution').innerHTML = `${avgResolution}h <small>city avg</small>`;
+  document.getElementById('pillCritical').classList.toggle('active', totalCritical >= 20);
+  document.getElementById('pillAlert').classList.toggle('active', alertZones >= 2);
+  document.getElementById('pillResolution').classList.toggle('active', avgResolution >= 18);
+  document.getElementById('mapHotspots').textContent = String(alertZones || 0);
+  const statHotspot = document.getElementById('stat-hotspot');
+  if(statHotspot) statHotspot.textContent = String(alertZones || 0);
+
+  const topArea = contextualPanels[0];
+  const cityTrend = contextualPanels.length
+    ? Math.round(contextualPanels.reduce((sum,p)=>sum+p.trendDelta,0)/contextualPanels.length)
+    : 0;
+  document.getElementById('fiArea').textContent = topArea ? topArea.area : '—';
+  document.getElementById('fiTrend').textContent = `${cityTrend>0?'+':''}${cityTrend}%`;
+  document.getElementById('fiTitle').textContent = cityTrend > 8 ? 'Escalation watch active' : 'City baseline stable';
+  document.getElementById('fiSub').textContent = topArea
+    ? `${topArea.area} currently carries the highest critical load with ${topArea.critical} critical issues.`
+    : 'Hover a floating area card to inspect trend. Click to drill into local details.';
+
+  const leftEscalations = document.getElementById('leftEscalations');
+  const leftOpenCases = document.getElementById('leftOpenCases');
+  const leftSla = document.getElementById('leftSla');
+  const leftFocusArea = document.getElementById('leftFocusArea');
+  if(leftEscalations && leftOpenCases && leftSla && leftFocusArea){
+    leftEscalations.textContent = String(totalCritical);
+    leftOpenCases.textContent = String(openCases);
+    leftSla.textContent = `${avgResolution}h`;
+    leftFocusArea.textContent = topArea ? topArea.area : '—';
+  }
+}
+
+function markActiveContextPanel(){
+  const overlay = document.getElementById('mapDataOverlay');
+  if(!overlay) return;
+  Array.from(overlay.children).forEach((card, idx)=>{
+    card.classList.toggle('is-selected', idx===activeContextIndex);
+  });
+}
+
+function renderContextPanels(){
+  const overlay = document.getElementById('mapDataOverlay');
+  if(!overlay) return;
+  deriveContextPanels();
+  overlay.innerHTML = '';
+  contextualPanels.forEach((panel, index)=>{
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = `context-float-card ${panel.critical>=10?'is-critical':''} ${panel.alertActive?'is-alert':''}`;
+    card.style.setProperty('--accent', panel.accent);
+    card.style.setProperty('--connector-height', `${Math.max(28, Math.min(58, 32 + panel.critical))}px`);
+    card.innerHTML = contextPanelMarkup(panel);
+    card.addEventListener('mouseenter', ()=>{
+      document.getElementById('fiTitle').textContent = `${panel.area} live focus`;
+      document.getElementById('fiSub').textContent = `${panel.complaints} complaints, ${panel.critical} critical issues, avg ${panel.avgResolutionHours}h resolution window.`;
+      document.getElementById('fiArea').textContent = panel.area;
+      document.getElementById('fiTrend').textContent = `${panel.trendDelta>0?'+':''}${panel.trendDelta}%`;
+    });
+    card.addEventListener('mouseleave', updateFuiHudStats);
+    card.addEventListener('click', ()=>{
+      flyTo(panel.lat, panel.lng);
+      openContextDrawer(index);
+    });
+    overlay.appendChild(card);
+  });
+  updateFuiHudStats();
+  scheduleContextPanelPosition();
+}
+
+function positionContextPanels(){
+  const overlay = document.getElementById('mapDataOverlay');
+  if(!overlay || !contextualPanels.length) return;
+  const cards = Array.from(overlay.children);
+  const bounds = map.getBounds();
+  cards.forEach((card, i)=>{
+    const panel = contextualPanels[i];
+    const ll = L.latLng(panel.lat, panel.lng);
+    if(!bounds.pad(0.2).contains(ll)){
+      card.style.opacity = '0';
+      return;
+    }
+    const p = map.latLngToContainerPoint(ll);
+    const x = p.x - 110;
+    const y = p.y - 156;
+    card.style.opacity = '1';
+    card.style.setProperty('--tx', `${x}px`);
+    card.style.setProperty('--ty', `${y}px`);
+  });
+}
+
+function scheduleContextPanelPosition(){
+  if(contextRafId) return;
+  contextRafId = requestAnimationFrame(()=>{
+    contextRafId = null;
+    positionContextPanels();
+  });
+}
+
+function bindContextPanelMapEvents(){
+  if(contextEventsBound) return;
+  contextEventsBound = true;
+  ['move','zoom','resize','moveend','zoomend'].forEach(evt=>map.on(evt, scheduleContextPanelPosition));
+  window.addEventListener('resize', scheduleContextPanelPosition);
+}
+
+function openContextDrawer(index){
+  const panel = contextualPanels[index];
+  if(!panel) return;
+  activeContextIndex = index;
+  markActiveContextPanel();
+  document.getElementById('cdArea').textContent = panel.area;
+  document.getElementById('cdCoords').textContent = `${panel.lat.toFixed(4)}, ${panel.lng.toFixed(4)}`;
+  document.getElementById('cdComplaints').textContent = String(panel.complaints);
+  document.getElementById('cdCritical').textContent = String(panel.critical);
+  document.getElementById('cdResolution').textContent = `${panel.avgResolutionHours}h`;
+  document.getElementById('cdTrend').textContent = `${panel.trendDelta>0?'+':''}${panel.trendDelta}%`;
+  document.getElementById('cdNote').innerHTML = panel.alertActive
+    ? `<strong style="color:#f43f5e">Critical zone:</strong> Elevated risk and open high-priority incidents detected.`
+    : `<strong style="color:#22d3ee">Monitoring:</strong> Area is stable with manageable issue velocity.`;
+  const list = panel.breakdown.topCategories.length
+    ? panel.breakdown.topCategories.map(([name,count])=>`<div class="cd-item"><span>${name}</span><strong>${count}</strong></div>`).join('')
+    : `<div class="cd-item"><span>No dominant complaint category</span><strong>—</strong></div>`;
+  document.getElementById('cdList').innerHTML = `
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Top Complaint Categories</div>
+    ${list}
+    <div class="cd-item"><span>Mapped Crimes (sample)</span><strong>${panel.breakdown.crimeCount}</strong></div>
+  `;
+  document.getElementById('contextDrawer').classList.add('open');
+}
+
+function closeContextDrawer(){
+  activeContextIndex = null;
+  markActiveContextPanel();
+  document.getElementById('contextDrawer').classList.remove('open');
+}
+
+// ── CUSTOM ICONS ──
+function crimeIcon(severity, hotspot){
+  const colors={critical:'#ff3d5a',high:'#ff7800',moderate:'#ffb300',low:'#69db7c'};
+  const c=colors[severity]||'#ff3d5a';
+  return L.divIcon({
+    html:`<div style="width:${hotspot?20:14}px;height:${hotspot?20:14}px;border-radius:50%;
+      background:${c};border:2px solid rgba(255,255,255,.4);
+      ${hotspot?'box-shadow:0 0 0 0 '+c+'66;animation:pulse-marker 1.5s infinite':''};
+      display:flex;align-items:center;justify-content:center;font-size:8px">
+      ${hotspot?'<span style="color:white;font-weight:900">!</span>':''}
+    </div>
+    <style>@keyframes pulse-marker{0%,100%{box-shadow:0 0 0 0 ${c}66}50%{box-shadow:0 0 0 8px rgba(0,0,0,0)}}</style>`,
+    className:'',iconAnchor:[hotspot?10:7,hotspot?10:7]
+  });
+}
+
+function compIcon(color, hotspot){
+  return L.divIcon({
+    html:`<div style="width:${hotspot?18:12}px;height:${hotspot?18:12}px;border-radius:4px;
+      background:${color||'#00c8ff'};border:2px solid rgba(255,255,255,.4);
+      transform:rotate(45deg);
+      ${hotspot?'box-shadow:0 0 0 0 '+color+'66;animation:pulse-marker 1.5s infinite':''}">
+    </div>`,
+    className:'',iconAnchor:[hotspot?9:6,hotspot?9:6]
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER MARKERS
+// ══════════════════════════════════════════════════════
+function renderCrimes(){
+  layerGroups.crimes.clearLayers();
+  CRIMES.forEach(c=>{
+    const hotspot = c.severity==='critical';
+    const m = L.marker([c.lat,c.lng],{icon:crimeIcon(c.severity, hotspot)})
+      .on('click',()=>flyTo(c.lat,c.lng));
+    layerGroups.crimes.addLayer(m);
+  });
+}
+
+function renderComplaints(){
+  layerGroups.complaints.clearLayers();
+  COMPLAINTS.forEach(c=>{
+    const m = L.marker([c.lat,c.lng],{icon:compIcon(c.color, c.hotspot)})
+      .on('click',()=>flyTo(c.lat,c.lng));
+    layerGroups.complaints.addLayer(m);
+  });
+}
+
+function renderHeatmap(){
+  layerGroups.heat.clearLayers();
+  // Draw heatmap rings for hotspot wards
+  const hotspots = [
+    {lat:18.5018,lng:73.9263,intensity:0.95,r:800},  // Hadapsar
+    {lat:18.4743,lng:73.8561,intensity:0.80,r:600},  // Bibwewadi
+    {lat:18.6270,lng:73.7956,intensity:0.75,r:600},  // Pimpri
+    {lat:18.4530,lng:73.8671,intensity:0.70,r:500},  // Katraj
+    {lat:18.5308,lng:73.8474,intensity:0.60,r:500},  // Shivajinagar
+    {lat:18.5590,lng:73.7868,intensity:0.50,r:400},  // Baner
+    {lat:18.5362,lng:73.8938,intensity:0.50,r:400},  // Koregaon Park
+    {lat:18.5018,lng:73.8573,intensity:0.45,r:400},  // Swargate
+  ];
+  hotspots.forEach(h=>{
+    const alpha = h.intensity*0.25;
+    L.circle([h.lat,h.lng],{
+      radius:h.r, color:'#ff3d5a', fillColor:'#ff3d5a',
+      fillOpacity:alpha, opacity:alpha*1.5, weight:0
+    }).addTo(layerGroups.heat);
+    // Inner ring
+    L.circle([h.lat,h.lng],{
+      radius:h.r*0.4, color:'#ff3d5a', fillColor:'#ff9f43',
+      fillOpacity:alpha*1.8, opacity:0, weight:0
+    }).addTo(layerGroups.heat);
+  });
+}
+
+function renderPredictions(){
+  layerGroups.predictions.clearLayers();
+  predictionHotspots.forEach(h=>{
+    const level = (h.risk_level || '').toLowerCase();
+    const color = level === 'critical' ? '#dc2626' : level === 'high' ? '#f97316' : level === 'medium' ? '#f59e0b' : '#22c55e';
+    const radius = level === 'critical' ? 11 : level === 'high' ? 9 : 7;
+    L.circleMarker([h.latitude, h.longitude], {
+      radius,
+      color,
+      weight:2,
+      fillColor:color,
+      fillOpacity:0.35
+    }).bindPopup(`
+      <div style="background:#0e1420;padding:10px;border-radius:8px;min-width:220px">
+        <div style="font-size:12px;font-weight:800;color:#d4e0f0">${h.area_name} (${h.ward_number})</div>
+        <div style="font-size:10px;color:#7b93ad;margin-top:3px">Predicted Date: ${h.predicted_date}</div>
+        <div style="margin-top:8px;font-size:11px;color:${color};font-weight:800">Risk: ${(Number(h.risk_score||0)).toFixed(1)} / 100 (${String(h.risk_level||'').toUpperCase()})</div>
+      </div>
+    `).addTo(layerGroups.predictions);
+  });
+}
+
+async function loadPredictionHotspots(){
+  try{
+    const res = await fetch(`${API_BASE}/api/predictions/crime-hotspots?days=7`);
+    if(!res.ok) return;
+    const payload = await res.json();
+    const hotspots = payload?.data?.hotspots || [];
+    const byLocation = new Map();
+    hotspots.forEach(h=>{
+      const key = `${h.location_id}`;
+      if(!byLocation.has(key) || Number(h.risk_score||0) > Number(byLocation.get(key).risk_score||0)){
+        byLocation.set(key, h);
+      }
+    });
+    predictionHotspots = Array.from(byLocation.values());
+    renderPredictions();
+  }catch(_e){}
+}
+
+async function loadLiveMapData(){
+  try{
+    const res = await fetch(`${API_BASE}/api/map/all-incidents?days=90`);
+    if(!res.ok) return;
+    const payload = await res.json();
+    const body = payload?.data || {};
+
+    if(Array.isArray(body.complaints) && body.complaints.length){
+      COMPLAINTS.length = 0;
+      body.complaints.forEach(c=>{
+        COMPLAINTS.push({
+          id: c.code,
+          cat: c.title,
+          priority: c.severity,
+          color: c.color || '#00c8ff',
+          lat: Number(c.lat),
+          lng: Number(c.lng),
+          area: c.area_name,
+          status: c.status || 'pending',
+          hotspot: Number(c.is_hotspot_flag || 0) === 1
+        });
+      });
+      document.getElementById('mapTotalComp').textContent = String(COMPLAINTS.length);
+      document.getElementById('stat-complaints').textContent = String(COMPLAINTS.length);
+    }
+
+    if(Array.isArray(body.crimes) && body.crimes.length){
+      CRIMES.length = 0;
+      body.crimes.forEach(c=>{
+        CRIMES.push({
+          id: c.code,
+          type: c.title,
+          typeCode: c.sub_type,
+          severity: (c.severity || 'moderate').toLowerCase(),
+          lat: Number(c.lat),
+          lng: Number(c.lng),
+          area: c.area_name,
+          ward: c.ward_number,
+          desc: c.title,
+          status: c.status || 'reported',
+          date: String(c.event_time || '').slice(0,10),
+          time: null,
+          victims: 1,
+          icon: '🚨'
+        });
+      });
+      document.getElementById('mapTotalCrime').textContent = String(CRIMES.length);
+      document.getElementById('stat-crimes').textContent = String(CRIMES.length);
+    }
+    renderContextPanels();
+  }catch(_e){}
+}
+
+function renderSafetyZones(){
+  layerGroups.safety.clearLayers();
+  WARDS.forEach(w=>{
+    const s = SAFETY.find(x=>x.ward===w.ward)||{score:50,risk:'moderate'};
+    const col = s.score>=80?'#00e676':s.score>=60?'#00b0ff':s.score>=40?'#ffb300':'#ff3d5a';
+    const alpha = 0.18 + (1-s.score/100)*0.2;
+    L.circle([w.lat,w.lng],{
+      radius:700,color:col,fillColor:col,
+      fillOpacity:alpha,opacity:alpha*2,weight:1
+    }).bindPopup(`<div style="background:#0e1420;padding:10px 12px;border-radius:8px;font-family:'Syne',sans-serif">
+      <div style="font-weight:800;font-size:13px;color:#d4e0f0">${w.name} (${w.ward})</div>
+      <div style="font-size:11px;color:#5a7a9a;margin-top:4px">${w.zone} Zone</div>
+      <div style="font-size:22px;font-weight:900;color:${col};margin:6px 0">${s.score}</div>
+      <div style="font-size:10px;font-weight:800;color:${col};text-transform:uppercase">${s.risk.replace('_',' ')} Risk</div>
+    </div>`,{className:'',maxWidth:200})
+    .addTo(layerGroups.safety);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  LAYER TOGGLES
+// ══════════════════════════════════════════════════════
+function toggleLayer(name){
+  layerState[name] = !layerState[name];
+  const el = {
+    complaints:document.getElementById('btnComp'),
+    crimes:document.getElementById('btnCrime'),
+    heat:document.getElementById('btnHeat'),
+    predictions:document.getElementById('btnPred'),
+    safety:document.getElementById('btnSafe')
+  }[name];
+  const cls = {
+    complaints:'active-comp',crimes:'active-crime',heat:'active-heat',predictions:'active-crime',safety:'active-safe'
+  }[name];
+
+  if(layerState[name]){
+    map.addLayer(layerGroups[name]);
+    el.classList.add(cls);
+  } else {
+    map.removeLayer(layerGroups[name]);
+    el.classList.remove(cls);
+  }
+}
+
+function flyTo(lat,lng){map.flyTo([lat,lng],15,{duration:1.2})}
+
+function toggleMapStyle(){
+  darkMode=!darkMode;
+  tileLayer.setUrl(darkMode?TILE_DARK:TILE_LIGHT);
+  document.getElementById('styleBtn').innerHTML = darkMode?'<i class="fa fa-moon"></i>':'<i class="fa fa-sun"></i>';
+}
+
+// ══════════════════════════════════════════════════════
+//  LEFT PANEL RENDERING
+// ══════════════════════════════════════════════════════
+let searchQuery = '';
+
+function filterIncidents(){
+  searchQuery = document.getElementById('panelSearch').value.toLowerCase();
+  renderIncidentList();
+}
+
+function renderIncidentList(){
+  const container = document.getElementById('incidentList');
+  const sevColors={critical:'#ff3d5a',high:'#ff7800',moderate:'#ffb300',low:'#69db7c'};
+
+  let html='';
+
+  // Crimes
+  const filteredCrimes = CRIMES.filter(c=>
+    !searchQuery ||
+    c.type.toLowerCase().includes(searchQuery)||
+    c.area.toLowerCase().includes(searchQuery)||
+    c.id.toLowerCase().includes(searchQuery)
+  );
+
+  if(filteredCrimes.length){
+    html+=`<div style="padding:8px 14px 4px;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#ff3d5a;background:#080c12;border-bottom:1px solid #1e2d45">
+      🚨 Crime Incidents (${filteredCrimes.length})
+    </div>`;
+    filteredCrimes.slice(0,15).forEach(c=>{
+      const col=sevColors[c.severity]||'#ff3d5a';
+      html+=`<div class="incident-item crime-type" onclick="flyTo(${c.lat},${c.lng})" style="border-left-color:${col}">
+        <div style="display:flex;gap:9px;align-items:flex-start">
+          <div class="incident-dot" style="background:${col}18;color:${col}">${c.icon}</div>
+          <div style="flex:1;min-width:0">
+            <div class="inc-code">${c.id}</div>
+            <div class="inc-title">${c.type}</div>
+            <div class="inc-meta">
+              <span><i class="fa fa-map-marker-alt" style="color:${col};font-size:9px"></i> ${c.area}</span>
+              <span><i class="fa fa-calendar" style="color:#5a7a9a;font-size:9px"></i> ${c.date}</span>
+            </div>
+          </div>
+          <span class="severity-tag sev-${c.severity}">${c.severity}</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Complaints
+  const filteredComp = COMPLAINTS.filter(c=>
+    !searchQuery ||
+    c.cat.toLowerCase().includes(searchQuery)||
+    c.area.toLowerCase().includes(searchQuery)||
+    c.id.toLowerCase().includes(searchQuery)
+  );
+
+  if(filteredComp.length){
+    html+=`<div style="padding:8px 14px 4px;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#00c8ff;background:#080c12;border-bottom:1px solid #1e2d45;border-top:1px solid #1e2d45;margin-top:4px">
+      🏙️ Civic Complaints (${filteredComp.length})
+    </div>`;
+    filteredComp.forEach(c=>{
+      const col=c.color||'#00c8ff';
+      html+=`<div class="incident-item complaint-type" onclick="flyTo(${c.lat},${c.lng})" style="border-left-color:${col}">
+        <div style="display:flex;gap:9px;align-items:flex-start">
+          <div class="incident-dot" style="background:${col}18;color:${col};font-size:14px">◆</div>
+          <div style="flex:1;min-width:0">
+            <div class="inc-code">${c.id}</div>
+            <div class="inc-title">${c.cat}</div>
+            <div class="inc-meta">
+              <span><i class="fa fa-map-marker-alt" style="color:${col};font-size:9px"></i> ${c.area}</span>
+              <span style="color:${col};font-weight:700;font-size:10px">${c.status.replace('_',' ')}</span>
+              ${c.hotspot?`<span style="color:#ff3d5a;font-weight:800;font-size:9px">🔥 HOTSPOT</span>`:''}
+            </div>
+          </div>
+          <span class="severity-tag" style="background:${col}18;color:${col}">${c.priority}</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  container.innerHTML = html||`<div style="padding:32px;text-align:center;color:#5a7a9a;font-size:13px">No results for "${searchQuery}"</div>`;
+}
+
+function renderSafetyList(){
+  const riskColors={very_low:'#00e676',low:'#00c8ff',moderate:'#ffb300',high:'#ff7800',critical:'#ff3d5a'};
+  document.getElementById('safetyList').innerHTML = SAFETY.map(s=>{
+    const col=riskColors[s.risk];
+    return `<div class="safety-row" onclick="flyTo(${WARDS.find(w=>w.ward===s.ward)?.lat||18.52},${WARDS.find(w=>w.ward===s.ward)?.lng||73.85})" style="border-left:3px solid ${col}">
+      <div class="safety-score-circle" style="border-color:${col};color:${col}">${s.score}</div>
+      <div class="safety-bar-wrap">
+        <div style="font-size:12px;font-weight:800">${s.area}</div>
+        <div style="font-size:10px;color:#5a7a9a">${s.ward} · ${s.risk.replace('_',' ')} risk</div>
+        <div class="safety-bar-track">
+          <div class="safety-bar-fill" style="width:${s.score}%;background:${col}"></div>
+        </div>
+        <div style="display:flex;gap:12px;font-size:9px;color:#5a7a9a;margin-top:3px">
+          <span>🚨 ${s.crimes30d} crimes</span>
+          <span>📋 ${s.comp30d} complaints</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// TABS
+function switchTab(t){
+  ['incidents','stats','safety'].forEach(id=>{
+    document.getElementById('tab-'+id).style.display = id===t?'block':'none';
+    document.querySelectorAll('.ptab')[['incidents','stats','safety'].indexOf(id)].classList.toggle('active',id===t);
+  });
+}
+
+// ── MINI CHARTS ──
+function renderMiniCharts(){
+  // Crime type donut
+  const crimeTypes = {};
+  CRIMES.forEach(c=>{crimeTypes[c.type]=(crimeTypes[c.type]||0)+1});
+  const sorted = Object.entries(crimeTypes).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  new Chart(document.getElementById('crimeTypeChart'),{
+    type:'doughnut',
+    data:{labels:sorted.map(x=>x[0].split('/')[0]),
+          datasets:[{data:sorted.map(x=>x[1]),
+            backgroundColor:['#ff3d5a44','#ff780044','#ffb30044','#c084fc44','#00e67644','#00c8ff44'],
+            borderColor:['#ff3d5a','#ff7800','#ffb300','#c084fc','#00e676','#00c8ff'],
+            borderWidth:1.5}]},
+    options:{responsive:true,cutout:'60%',plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw}`},
+        backgroundColor:'#0e1420',borderColor:'#1e2d45',borderWidth:1,titleColor:'#d4e0f0',bodyColor:'#5a7a9a'}}}
+  });
+
+  // Complaint categories bar
+  new Chart(document.getElementById('compCatChart'),{
+    type:'bar',
+    data:{
+      labels:['Pothole','Garbage','Water','Sewage','Light','Electricity','Others'],
+      datasets:[{data:[89,76,68,54,61,47,128],
+        backgroundColor:'#00c8ff22',borderColor:'#00c8ff',borderWidth:1.5,borderRadius:3}]},
+    options:{responsive:true,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0e1420',borderColor:'#1e2d45',borderWidth:1,titleColor:'#d4e0f0',bodyColor:'#5a7a9a'}},
+      scales:{x:{grid:{color:'#1e2d4566'},ticks:{color:'#5a7a9a',font:{size:9}}},
+              y:{grid:{display:false},ticks:{color:'#5a7a9a',font:{size:9}}}}}
+  });
+
+  // Time of day polar
+  new Chart(document.getElementById('timeChart'),{
+    type:'bar',
+    data:{
+      labels:['Dawn\n4-8am','Morning\n8-12','Afternoon\n12-5','Evening\n5-9pm','Night\n9pm+'],
+      datasets:[{data:[8,12,14,18,28],
+        backgroundColor:['#c084fc22','#ffb30022','#ffb30022','#ff780022','#ff3d5a33'],
+        borderColor:['#c084fc','#ffb300','#ffb300','#ff7800','#ff3d5a'],
+        borderWidth:1.5,borderRadius:4}]},
+    options:{responsive:true,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#0e1420',borderColor:'#1e2d45',borderWidth:1,titleColor:'#d4e0f0',bodyColor:'#5a7a9a'}},
+      scales:{x:{grid:{display:false},ticks:{color:'#5a7a9a',font:{size:8}}},
+              y:{grid:{color:'#1e2d4555'},ticks:{color:'#5a7a9a',font:{size:9}}}}}
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', async ()=>{
+  document.getElementById('cdCloseBtn').addEventListener('click', closeContextDrawer);
+  document.getElementById('contextDrawer').addEventListener('click', e=>{
+    if(e.target.id==='contextDrawer') closeContextDrawer();
+  });
+  await loadLiveMapData();
+  await loadPredictionHotspots();
+  renderCrimes();
+  renderComplaints();
+  renderHeatmap();
+  renderPredictions();
+  renderSafetyZones();
+  renderIncidentList();
+  renderSafetyList();
+  renderContextPanels();
+  bindContextPanelMapEvents();
+  renderMiniCharts();
+
+  // Keep map data fresh so newly filed complaints appear without manual reload.
+  setInterval(async ()=>{
+    try{
+      await loadLiveMapData();
+      renderCrimes();
+      renderComplaints();
+      renderPredictions();
+      renderIncidentList();
+    }catch(_e){}
+  }, 45000);
+});
+</script>
+</body>
+</html>

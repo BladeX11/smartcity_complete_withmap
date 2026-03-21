@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Complaint Management | SmartCity Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+:root{--primary:#6d28d9;--accent:#22d3ee;--success:#22c55e;--warning:#f59e0b;--danger:#f43f5e;
+  --dark-bg:#070b16;--card-bg:#111827;--card-border:#24304a;--text-primary:#eef4ff;--text-muted:#9fb0ca}
+body{background:radial-gradient(1000px 520px at 8% -8%,rgba(34,211,238,.14),transparent 58%),radial-gradient(900px 500px at 95% -10%,rgba(109,40,217,.2),transparent 58%),var(--dark-bg);color:var(--text-primary);font-family:'Segoe UI',sans-serif}
+.sidebar{width:260px;background:var(--card-bg);border-right:1px solid var(--card-border);
+  height:100vh;position:fixed;top:0;left:0;z-index:100}
+.sidebar-brand{padding:20px 24px;border-bottom:1px solid var(--card-border);display:flex;align-items:center;gap:12px}
+.logo-box{width:40px;height:40px;background:linear-gradient(135deg,#6d28d9,#22d3ee);border-radius:10px;
+  display:flex;align-items:center;justify-content:center}
+.nav-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+  color:var(--text-muted);text-decoration:none;transition:.2s;margin:2px 12px;font-size:14px}
+.nav-link:hover,.nav-link.active{background:rgba(0,176,255,.1);color:var(--accent)}
+.nav-link i{width:18px;font-size:13px}
+.main-content{margin-left:260px;padding:24px;min-height:100vh}
+.topbar{background:linear-gradient(180deg,rgba(17,24,39,.95),rgba(10,14,28,.95));border:1px solid var(--card-border);border-radius:12px;
+  padding:16px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between}
+.filter-bar{background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;
+  padding:16px 20px;margin-bottom:20px}
+.form-select,.form-control{background:#0d1117;border:1px solid var(--card-border);color:var(--text-primary);
+  border-radius:8px;font-size:13px}
+.form-select:focus,.form-control:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,176,255,.15);
+  background:#0d1117;color:var(--text-primary)}
+.table-card{background:linear-gradient(180deg,rgba(17,24,39,.95),rgba(10,14,28,.95));border:1px solid var(--card-border);border-radius:16px;overflow:hidden;box-shadow:0 14px 38px rgba(34,211,238,.08)}
+.complaint-table{width:100%;border-collapse:collapse}
+.complaint-table th{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--text-muted);padding:14px 16px;border-bottom:1px solid var(--card-border);
+  background:#0d1117;text-align:left;white-space:nowrap}
+.complaint-table td{padding:12px 16px;border-bottom:1px solid rgba(48,54,61,.4);font-size:13px;vertical-align:middle}
+.complaint-table tbody tr:hover td{background:rgba(0,176,255,.03)}
+.status-pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.p-critical{background:rgba(220,53,69,.15);color:#dc3545}
+.p-high    {background:rgba(253,126,20,.15);color:#fd7e14}
+.p-medium  {background:rgba(255,193,7,.15);color:#ffc107}
+.p-low     {background:rgba(40,167,69,.15);color:#28a745}
+.s-pending    {background:rgba(255,171,0,.12);color:#ffab00}
+.s-in_progress{background:rgba(0,176,255,.12);color:#00b0ff}
+.s-resolved   {background:rgba(0,200,83,.12);color:#00c853}
+.s-closed     {background:rgba(139,148,158,.12);color:#8b949e}
+.s-rejected   {background:rgba(244,67,54,.12);color:#f44336}
+.s-assigned   {background:rgba(124,77,255,.12);color:#7c4dff}
+.sla-breached{color:#f44336;font-size:11px}
+.sla-ok      {color:#00c853;font-size:11px}
+.complaint-code{font-family:monospace;font-size:12px;color:var(--accent)}
+.action-btn{padding:5px 10px;border-radius:6px;font-size:12px;border:none;cursor:pointer;transition:.2s}
+.btn-view{background:rgba(0,176,255,.1);color:var(--accent)}
+.btn-view:hover{background:rgba(0,176,255,.2)}
+.btn-update{background:rgba(0,200,83,.1);color:var(--success)}
+.btn-update:hover{background:rgba(0,200,83,.2)}
+.pagination-bar{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px;border-top:1px solid var(--card-border);font-size:13px}
+.page-btn{background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-primary);
+  padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px}
+.page-btn:hover,.page-btn.active{background:rgba(0,176,255,.1);border-color:var(--accent);color:var(--accent)}
+/* MODAL */
+.modal-dark .modal-content{background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-primary)}
+.modal-dark .modal-header{border-bottom:1px solid var(--card-border)}
+.modal-dark .modal-footer{border-top:1px solid var(--card-border)}
+.detail-label{font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.detail-value{font-size:14px;margin-bottom:16px}
+.timeline-item{display:flex;gap:12px;margin-bottom:16px}
+.timeline-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);margin-top:4px;flex-shrink:0}
+.timeline-line{width:1px;background:var(--card-border);margin:0 4px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar d-flex flex-column">
+  <div class="sidebar-brand">
+    <div class="logo-box"><i class="fa fa-city text-white"></i></div>
+    <div><div style="font-size:14px;font-weight:700">SmartCity</div>
+      <div style="font-size:11px;color:var(--accent)">Admin Panel</div></div>
+  </div>
+  <div class="flex-grow-1 py-2 overflow-auto">
+    <div style="padding:12px 16px 4px;font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:1px;text-transform:uppercase">OVERVIEW</div>
+    <a href="admin_dashboard.html" class="nav-link"><i class="fa fa-chart-line"></i>Analytics Dashboard</a>
+    <a href="admin_complaints.html" class="nav-link active"><i class="fa fa-list-check"></i>Complaint Management</a>
+    <div style="padding:12px 16px 4px;font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:1px;text-transform:uppercase">MANAGEMENT</div>
+    <a href="admin_dashboard.html" class="nav-link"><i class="fa fa-building"></i>Department Panel</a>
+    <a href="city_map.html" class="nav-link"><i class="fa fa-map-marked-alt"></i>Hotspot Map</a>
+    <a href="admin_dashboard.html" class="nav-link"><i class="fa fa-clock"></i>SLA Tracker</a>
+    <a href="../index.html" class="nav-link mt-3"><i class="fa fa-right-from-bracket"></i>Logout</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main-content">
+  <div class="topbar">
+    <div>
+      <h5 class="mb-0 fw-bold"><i class="fa fa-list-check me-2" style="color:var(--accent)"></i>Complaint Management</h5>
+      <p class="mb-0 mt-1" style="font-size:12px;color:var(--text-muted)" id="totalCount">Loading complaints...</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-sm" style="background:rgba(0,200,83,.1);color:var(--success);border:1px solid rgba(0,200,83,.3)" onclick="exportCSV()"><i class="fa fa-download me-1"></i>Export CSV</button>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filter-bar">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3 col-6">
+        <label class="form-label mb-1" style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase">Status</label>
+        <select class="form-select form-select-sm" id="filterStatus" onchange="applyFilters()">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="assigned">Assigned</option>
+          <option value="in_progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="col-md-3 col-6">
+        <label class="form-label mb-1" style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase">Priority</label>
+        <select class="form-select form-select-sm" id="filterPriority" onchange="applyFilters()">
+          <option value="">All Priorities</option>
+          <option value="1">Critical</option>
+          <option value="2">High</option>
+          <option value="3">Medium</option>
+          <option value="4">Low</option>
+        </select>
+      </div>
+      <div class="col-md-3 col-6">
+        <label class="form-label mb-1" style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase">Department</label>
+        <select class="form-select form-select-sm" id="filterDept" onchange="applyFilters()">
+          <option value="">All Departments</option>
+          <option>Engineering & Roads</option>
+          <option>Sanitation & Waste</option>
+          <option>Water & Utilities</option>
+          <option>Electricity Board</option>
+          <option>Transport & Traffic</option>
+        </select>
+      </div>
+      <div class="col-md-3 col-6">
+        <label class="form-label mb-1" style="font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase">Search</label>
+        <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Code or title..." oninput="applyFilters()">
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div style="overflow-x:auto">
+      <table class="complaint-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" style="accent-color:var(--accent)"></th>
+            <th>Code</th><th>Title</th><th>Category</th><th>Area</th>
+            <th>Department</th><th>Priority</th><th>Status</th><th>SLA</th>
+            <th>Age</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="complaintTableBody">
+          <tr><td colspan="11" class="text-center py-5" style="color:var(--text-muted)">
+            <i class="fa fa-spinner fa-spin fa-2x mb-2"></i><br>Loading complaints...
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination-bar">
+      <span id="pageInfo" style="color:var(--text-muted)">—</span>
+      <div class="d-flex gap-1" id="pageBtns"></div>
+    </div>
+  </div>
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable modal-dark">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title fw-bold" id="modalTitle">Complaint Detail</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalBody">Loading...</div>
+      <div class="modal-footer">
+        <select class="form-select form-select-sm" id="newStatus" style="width:auto">
+          <option value="">Change Status...</option>
+          <option value="assigned">Assigned</option>
+          <option value="in_progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button class="btn btn-sm" style="background:rgba(0,200,83,.1);color:var(--success);border:1px solid rgba(0,200,83,.3)"
+          onclick="updateStatus()">Update Status</button>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+// DEMO DATA — 30 sample complaints
+const DEMO_COMPLAINTS = Array.from({length:30},(_, i)=>{
+  const statuses=['pending','assigned','in_progress','resolved','closed','rejected'];
+  const priorities=[
+    {id:1,name:'Critical',color:'#dc3545'},
+    {id:2,name:'High',    color:'#fd7e14'},
+    {id:3,name:'Medium',  color:'#ffc107'},
+    {id:4,name:'Low',     color:'#28a745'}
+  ];
+  const cats=['Pothole/Road','Garbage','Water Supply','Street Light','Sewage','Electricity','Stray Animals','Illegal Construction'];
+  const areas=['Hadapsar','Kothrud','Shivajinagar','Aundh','Baner','Bibwewadi','Kharadi','Warje'];
+  const depts=['Engineering & Roads','Sanitation & Waste','Water & Utilities','Electricity Board','Transport & Traffic'];
+  const titles=[
+    'Large pothole near school junction','Garbage pile not cleared for 5 days',
+    'No water supply since morning','Street light out for 3 nights',
+    'Sewage overflow blocking lane','Power outage affecting residential block',
+    'Stray dogs attacking in park','Illegal extension blocking passage',
+    'Broken footpath tiles','Mosquito breeding in vacant plot'
+  ];
+
+  const p  = priorities[(i*3)%4];
+  const st = statuses[(i*7)%6];
+  const hours = ((i*17)%72)+2;
+  const slaHours = [4,24,72,168][p.id-1];
+  const age = ((i*13)%120)+1;
+
+  return {
+    id:i+1,
+    code:`CMP-2024-${String(i+1).padStart(5,'0')}`,
+    title:titles[i%10],
+    category:cats[i%8],
+    area:areas[i%8],
+    department:depts[i%5],
+    priority:p,
+    status:st,
+    age_hours:age,
+    sla_hours:slaHours,
+    sla_breached: age > slaHours && !['resolved','closed','rejected'].includes(st),
+    submitted:'2024-'+String((i%12)+1).padStart(2,'0')+'-'+String((i%28)+1).padStart(2,'0'),
+    citizen:'Citizen '+String(i+11).padStart(3,'0')
+  };
+});
+
+let currentData   = [...DEMO_COMPLAINTS];
+let currentPage   = 1;
+const pageSize    = 10;
+let selectedId    = null;
+
+function applyFilters(){
+  const status   = document.getElementById('filterStatus').value;
+  const priority = document.getElementById('filterPriority').value;
+  const dept     = document.getElementById('filterDept').value;
+  const search   = document.getElementById('searchInput').value.toLowerCase();
+
+  currentData = DEMO_COMPLAINTS.filter(c=>{
+    if(status   && c.status !== status)      return false;
+    if(priority && c.priority.id !== +priority) return false;
+    if(dept     && !c.department.includes(dept.split('&')[0].trim())) return false;
+    if(search   && !c.code.toLowerCase().includes(search) && !c.title.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  currentPage = 1;
+  render();
+}
+
+function render(){
+  const start  = (currentPage-1)*pageSize;
+  const paged  = currentData.slice(start, start+pageSize);
+  const total  = currentData.length;
+  document.getElementById('totalCount').textContent = `Showing ${Math.min(start+1,total)}–${Math.min(start+pageSize,total)} of ${total} complaints`;
+
+  const tbody = document.getElementById('complaintTableBody');
+  if(!paged.length){
+    tbody.innerHTML='<tr><td colspan="11" class="text-center py-5" style="color:var(--text-muted)">No complaints match your filters.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = paged.map(c=>`
+    <tr>
+      <td><input type="checkbox" style="accent-color:var(--accent)"></td>
+      <td><span class="complaint-code">${c.code}</span></td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${c.title}">
+        ${c.is_hotspot?'<i class="fa fa-fire me-1" style="color:#f44336;font-size:11px"></i>':''}${c.title}</td>
+      <td style="font-size:12px">${c.category}</td>
+      <td style="font-size:12px">${c.area}</td>
+      <td style="font-size:12px">${c.department}</td>
+      <td><span class="status-pill p-${c.priority.name.toLowerCase()}">${c.priority.name}</span></td>
+      <td><span class="status-pill s-${c.status}">${c.status.replace('_',' ')}</span></td>
+      <td><span class="${c.sla_breached?'sla-breached':'sla-ok'}">
+        <i class="fa fa-${c.sla_breached?'xmark':'check'} me-1"></i>${c.sla_breached?'Breached':'OK'}</span></td>
+      <td style="font-size:12px;color:${c.age_hours>48?'#f44336':c.age_hours>24?'#ffab00':'#8b949e'}">${c.age_hours}h</td>
+      <td>
+        <button class="action-btn btn-view me-1" onclick="viewDetail(${c.id})"><i class="fa fa-eye me-1"></i>View</button>
+        <button class="action-btn btn-update" onclick="quickUpdate(${c.id})"><i class="fa fa-pen me-1"></i>Update</button>
+      </td>
+    </tr>`).join('');
+
+  renderPagination(total);
+}
+
+function renderPagination(total){
+  const pages = Math.ceil(total/pageSize);
+  document.getElementById('pageInfo').textContent =
+    `Page ${currentPage} of ${pages}`;
+
+  let btns = '';
+  for(let i=1;i<=Math.min(pages,7);i++)
+    btns+=`<button class="page-btn${i===currentPage?' active':''}" onclick="gotoPage(${i})">${i}</button>`;
+  document.getElementById('pageBtns').innerHTML = btns;
+}
+
+function gotoPage(p){currentPage=p;render()}
+
+function viewDetail(id){
+  const c = DEMO_COMPLAINTS.find(x=>x.id===id);
+  selectedId = id;
+  document.getElementById('modalTitle').textContent = c.code+' — '+c.title;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="row">
+      <div class="col-md-6">
+        <div class="detail-label">Status</div>
+        <div class="detail-value"><span class="status-pill s-${c.status}">${c.status.replace('_',' ')}</span></div>
+        <div class="detail-label">Priority</div>
+        <div class="detail-value"><span class="status-pill p-${c.priority.name.toLowerCase()}">${c.priority.name}</span></div>
+        <div class="detail-label">Category</div>
+        <div class="detail-value">${c.category}</div>
+        <div class="detail-label">Department</div>
+        <div class="detail-value">${c.department}</div>
+      </div>
+      <div class="col-md-6">
+        <div class="detail-label">Location</div>
+        <div class="detail-value">${c.area}</div>
+        <div class="detail-label">Submitted By</div>
+        <div class="detail-value">${c.citizen}</div>
+        <div class="detail-label">Submitted On</div>
+        <div class="detail-value">${c.submitted}</div>
+        <div class="detail-label">SLA Status</div>
+        <div class="detail-value"><span class="${c.sla_breached?'sla-breached':'sla-ok'}">
+          <i class="fa fa-${c.sla_breached?'exclamation-triangle':'check-circle'} me-1"></i>
+          ${c.sla_breached?'SLA Breached ('+c.age_hours+'h of '+c.sla_hours+'h target)':'Within SLA'}</span></div>
+      </div>
+    </div>
+    <div class="detail-label">Status Timeline</div>
+    <div class="d-flex flex-column">
+      <div class="timeline-item"><div class="timeline-dot" style="background:#7c4dff"></div>
+        <div><div style="font-size:13px;font-weight:600">Submitted</div>
+          <div style="font-size:11px;color:var(--text-muted)">${c.submitted}</div></div></div>
+      ${c.status!=='pending'?`<div class="timeline-item"><div class="timeline-dot" style="background:#00b0ff"></div>
+        <div><div style="font-size:13px;font-weight:600">Assigned to officer</div>
+          <div style="font-size:11px;color:var(--text-muted)">${c.submitted} +2h</div></div></div>`:''}
+      ${['in_progress','resolved','closed'].includes(c.status)?`<div class="timeline-item">
+        <div class="timeline-dot" style="background:#ffab00"></div>
+        <div><div style="font-size:13px;font-weight:600">Work in progress</div>
+          <div style="font-size:11px;color:var(--text-muted)">${c.submitted} +6h</div></div></div>`:''}
+      ${['resolved','closed'].includes(c.status)?`<div class="timeline-item">
+        <div class="timeline-dot" style="background:#00c853"></div>
+        <div><div style="font-size:13px;font-weight:600">Resolved</div>
+          <div style="font-size:11px;color:var(--text-muted)">Resolved in ${c.age_hours}h</div></div></div>`:''}
+    </div>`;
+  new bootstrap.Modal(document.getElementById('detailModal')).show();
+}
+
+function quickUpdate(id){viewDetail(id)}
+
+function updateStatus(){
+  const status = document.getElementById('newStatus').value;
+  if(!status || !selectedId) return;
+  const c = DEMO_COMPLAINTS.find(x=>x.id===selectedId);
+  c.status = status;
+  bootstrap.Modal.getInstance(document.getElementById('detailModal')).hide();
+  render();
+  alert(`Status updated to "${status}" (demo mode)`);
+}
+
+function exportCSV(){
+  const rows = [['Code','Title','Category','Area','Department','Priority','Status','Age(h)']];
+  DEMO_COMPLAINTS.forEach(c=>rows.push([c.code,c.title,c.category,c.area,c.department,c.priority.name,c.status,c.age_hours]));
+  const csv = rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a   = document.createElement('a');
+  a.href    = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download= 'smartcity_complaints.csv';
+  a.click();
+}
+
+render();
+</script>
+</body>
+</html>

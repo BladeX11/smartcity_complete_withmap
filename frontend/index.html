@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SmartCity | Complaint Analytics Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--primary:#6d28d9;--accent:#22d3ee;--success:#22c55e;--warning:#f59e0b;--danger:#f43f5e;
+  --dark-bg:#070b16;--card-bg:#111827;--card-border:#24304a;--text-primary:#eef4ff;--text-muted:#9fb0ca;--panel-bg:rgba(17,24,39,.75)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(1000px 520px at 8% -8%,rgba(34,211,238,.18),transparent 58%),radial-gradient(900px 520px at 95% 5%,rgba(109,40,217,.22),transparent 60%),var(--dark-bg);color:var(--text-primary);font-family:'Segoe UI',system-ui,sans-serif}
+
+/* NAVBAR */
+nav.main-nav{background:rgba(10,14,28,.78);backdrop-filter:blur(12px);border-bottom:1px solid var(--card-border);
+  padding:14px 0;position:sticky;top:0;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text-primary);font-weight:800;font-size:18px}
+.brand-logo{width:38px;height:38px;background:linear-gradient(135deg,#6d28d9,#22d3ee);border-radius:9px;
+  display:flex;align-items:center;justify-content:center}
+.nav-actions{display:flex;align-items:center;gap:12px}
+.btn-outline-accent{border:1px solid rgba(0,176,255,.3);color:var(--accent);background:transparent;
+  padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;text-decoration:none}
+.btn-outline-accent:hover{background:rgba(0,176,255,.1);color:var(--accent)}
+.btn-solid{background:linear-gradient(135deg,var(--primary),#0ea5e9);color:#fff;border:none;
+  padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;text-decoration:none}
+.btn-solid:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,176,255,.3);color:#fff}
+
+/* HERO */
+.hero{min-height:92vh;display:flex;align-items:center;position:relative;overflow:hidden;
+  background:radial-gradient(ellipse at 20% 50%,rgba(109,40,217,.28) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(34,211,238,.18) 0%,transparent 50%),
+              var(--dark-bg)}
+.hero::before{content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none' stroke='%2330363d' stroke-width='.5'/%3E%3C/svg%3E");
+  opacity:.4}
+.hero-content{position:relative;z-index:1}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,176,255,.1);
+  border:1px solid rgba(0,176,255,.2);border-radius:20px;padding:6px 14px;
+  font-size:12px;font-weight:600;color:var(--accent);margin-bottom:24px}
+.hero h1{font-size:clamp(32px,5vw,62px);font-weight:900;line-height:1.1;margin-bottom:20px}
+.hero h1 .highlight{background:linear-gradient(135deg,#22d3ee,#8b5cf6);-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:18px;color:var(--text-muted);max-width:520px;line-height:1.6;margin-bottom:32px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:48px}
+.hero-cta-primary{background:linear-gradient(135deg,var(--primary),#0ea5e9);color:#fff;border:none;
+  padding:16px 32px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;
+  text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+.hero-cta-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,176,255,.3);color:#fff}
+.hero-cta-sec{border:1px solid var(--card-border);color:var(--text-primary);background:transparent;
+  padding:16px 32px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;
+  text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.2s}
+.hero-cta-sec:hover{border-color:var(--accent);color:var(--accent)}
+.hero-metrics{display:grid;grid-template-columns:repeat(2,minmax(140px,1fr));gap:12px;max-width:560px}
+.metric-card{background:linear-gradient(180deg,rgba(30,41,59,.45),rgba(15,23,42,.32));backdrop-filter:blur(10px);border:1px solid rgba(148,163,184,.22);border-radius:14px;padding:14px 16px;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.metric-card:hover{transform:translateY(-3px);border-color:rgba(34,211,238,.5);box-shadow:0 10px 24px rgba(34,211,238,.16)}
+.metric-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.metric-icon{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;background:rgba(34,211,238,.12);color:var(--accent)}
+.metric-trend{font-size:10px;padding:3px 7px;border-radius:999px;background:rgba(34,197,94,.14);color:#86efac;border:1px solid rgba(134,239,172,.25)}
+.metric-value{font-size:24px;font-weight:800;line-height:1.05}
+.metric-label{font-size:12px;color:var(--text-muted);margin-top:2px}
+.live-activity{margin-top:14px;max-width:560px;background:linear-gradient(180deg,rgba(17,24,39,.75),rgba(15,23,42,.58));backdrop-filter:blur(10px);border:1px solid rgba(148,163,184,.2);border-radius:14px;padding:12px 14px}
+.live-activity-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.live-activity-list{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:132px;overflow:hidden}
+.live-activity-item{font-size:12px;color:#cbd5e1;background:rgba(15,23,42,.7);border:1px solid rgba(51,65,85,.8);border-radius:10px;padding:8px 10px;animation:slideIn .4s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.spline-wrap{background:linear-gradient(180deg,rgba(17,24,39,.96),rgba(10,14,28,.96));border:1px solid var(--card-border);border-radius:20px;padding:14px;position:relative;box-shadow:0 14px 40px rgba(34,211,238,.14)}
+#smartCityMap{width:100%;height:480px;border:0;border-radius:12px;display:block;background:#0d1117;box-shadow:inset 0 0 0 1px rgba(56,189,248,.25),0 0 32px rgba(34,211,238,.12)}
+.scene-fallback{display:none}
+.scene-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.scene-btn{border:1px solid var(--card-border);background:#0d1117;color:var(--text-muted);padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;transition:all .25s ease}
+.scene-btn:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 16px rgba(34,211,238,.15)}
+.scene-btn.active{border-color:rgba(34,211,238,.85);color:#e0f2fe;background:rgba(34,211,238,.12)}
+.scene-tooltip{position:absolute;pointer-events:none;background:rgba(8,12,18,.95);border:1px solid var(--card-border);color:var(--text-primary);padding:6px 8px;border-radius:8px;font-size:11px;display:none;z-index:5}
+.scene-legend{position:absolute;right:24px;bottom:24px;z-index:420;display:grid;gap:6px;background:rgba(8,12,18,.9);border:1px solid var(--card-border);padding:10px 12px;border-radius:10px;backdrop-filter:blur(8px)}
+.scene-legend-item{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.scene-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.map-overlay-chip{position:absolute;top:20px;left:20px;background:rgba(8,12,18,.88);border:1px solid var(--card-border);border-radius:10px;padding:8px 10px;font-size:11px;color:var(--text-muted);backdrop-filter:blur(8px)}
+.map-overlay-chip b{color:var(--accent)}
+.leaflet-container{background:#0d1117}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0f172a;color:#e5e7eb;border:1px solid #24304a}
+.leaflet-control-zoom{border:none!important}
+.leaflet-control-zoom a{background:#0f172a!important;color:#cbd5e1!important;border:1px solid #24304a!important}
+.complaint-pin{transition:transform .2s ease}
+.complaint-pin:hover{transform:scale(1.15)}
+.complaint-pin .pin-core{display:inline-block;width:13px;height:13px;border-radius:999px;box-shadow:0 0 0 3px rgba(15,23,42,.92)}
+.complaint-pin.critical .pin-core{background:#ff334d;box-shadow:0 0 0 3px rgba(15,23,42,.92),0 0 16px rgba(255,51,77,.8)}
+.complaint-pin.medium .pin-core{background:#facc15;box-shadow:0 0 0 3px rgba(15,23,42,.92),0 0 16px rgba(250,204,21,.72)}
+.complaint-pin.resolved .pin-core{background:#22c55e;box-shadow:0 0 0 3px rgba(15,23,42,.92),0 0 16px rgba(34,197,94,.62)}
+.complaint-pin.critical .pin-core::after{content:'';position:absolute;width:13px;height:13px;border-radius:999px;background:rgba(255,51,77,.35);animation:pulse 1.8s infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.85}100%{transform:scale(2.35);opacity:0}}
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:transparent}
+.cluster-shell{width:38px;height:38px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#e2e8f0;font-weight:700;border:1px solid rgba(148,163,184,.45);background:rgba(15,23,42,.9);box-shadow:0 0 16px rgba(34,211,238,.2)}
+.cluster-shell.critical{box-shadow:0 0 18px rgba(255,51,77,.35)}
+.cluster-shell.medium{box-shadow:0 0 18px rgba(250,204,21,.28)}
+.cluster-shell.resolved{box-shadow:0 0 18px rgba(34,197,94,.28)}
+
+/* STATS STRIP */
+.stat-strip{background:var(--card-bg);border-top:1px solid var(--card-border);border-bottom:1px solid var(--card-border)}
+.stat-item{text-align:center;padding:24px 0;border-right:1px solid var(--card-border)}
+.stat-item:last-child{border-right:none}
+.stat-value{font-size:32px;font-weight:900;line-height:1}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:4px;font-weight:500}
+
+/* FEATURES */
+.feature-card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;
+  padding:28px;transition:.3s;height:100%}
+.feature-card:hover{border-color:rgba(0,176,255,.3);transform:translateY(-4px)}
+.feature-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin-bottom:20px}
+
+/* SECTION */
+section{padding:80px 0}
+.section-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,176,255,.08);
+  border:1px solid rgba(0,176,255,.2);border-radius:20px;padding:5px 12px;
+  font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
+.section-title{font-size:clamp(24px,3.5vw,38px);font-weight:800;margin-bottom:12px}
+.section-sub{font-size:16px;color:var(--text-muted);max-width:560px;line-height:1.6}
+
+/* LOGIN MODAL */
+.modal-dark .modal-content{background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-primary);border-radius:16px}
+.modal-dark .modal-header{border-bottom:1px solid var(--card-border);padding:20px 24px}
+.modal-dark .modal-body{padding:24px}
+.modal-dark .modal-footer{border-top:1px solid var(--card-border)}
+.tab-btn{background:transparent;border:none;padding:10px 20px;border-radius:8px;
+  font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:.2s}
+.tab-btn.active{background:rgba(0,176,255,.1);color:var(--accent)}
+.auth-shell{display:grid;grid-template-columns:1fr 1.2fr;gap:16px}
+.auth-side{background:linear-gradient(160deg,rgba(26,35,126,.35),rgba(8,12,18,.7));border:1px solid var(--card-border);border-radius:12px;padding:16px}
+.auth-side h6{font-size:13px;font-weight:700;margin-bottom:10px}
+.auth-benefit{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--text-muted);margin-bottom:10px}
+.auth-benefit i{color:var(--accent);margin-top:2px}
+.auth-form-wrap{background:#0f141c;border:1px solid var(--card-border);border-radius:12px;padding:14px}
+.form-control-dark{background:#0d1117;border:1px solid var(--card-border);color:var(--text-primary);
+  border-radius:10px;padding:12px 14px;font-size:14px;width:100%;transition:.2s}
+.form-control-dark:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,176,255,.12);outline:none}
+.form-control-dark::placeholder{color:var(--text-muted)}
+.login-btn{background:linear-gradient(135deg,var(--primary),#1565c0);color:#fff;border:none;
+  width:100%;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;margin-top:16px}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,176,255,.3)}
+@media (max-width: 991px){
+  .hero-metrics{grid-template-columns:repeat(2,minmax(120px,1fr))}
+}
+@media (max-width: 767px){
+  .auth-shell{grid-template-columns:1fr}
+  .auth-side{display:none}
+  .hero-metrics{grid-template-columns:1fr}
+}
+
+/* FOOTER */
+footer{background:linear-gradient(180deg,#0f172a,#0b1020);border-top:1px solid var(--card-border);padding:48px 0 24px}
+.footer-brand{font-size:16px;font-weight:800;margin-bottom:8px}
+.footer-link{color:var(--text-muted);text-decoration:none;font-size:13px;display:block;margin-bottom:6px;transition:.2s}
+.footer-link:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="main-nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="brand">
+      <div class="brand-logo"><i class="fa fa-city text-white"></i></div>
+      SmartCity
+    </a>
+    <div class="nav-actions">
+      <a href="pages/complaint_tracker.html" class="btn-outline-accent"><i class="fa fa-search me-1"></i>Track</a>
+      <button class="btn-outline-accent" data-bs-toggle="modal" data-bs-target="#authModal">Login</button>
+      <button class="btn-solid" data-bs-toggle="modal" data-bs-target="#authModal" onclick="switchTab('register')">Register</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 hero-content">
+        <div class="hero-badge"><i class="fa fa-city"></i>Smart City Initiative</div>
+        <h1>Your City.<br>Your Voice.<br><span class="highlight">Your Dashboard.</span></h1>
+        <p>Report civic issues, track resolution in real-time, and help shape data-driven decisions for a smarter, better city.</p>
+        <div class="hero-cta">
+          <a href="pages/submit_complaint.html" class="hero-cta-primary"><i class="fa fa-file-circle-plus"></i>Submit Complaint</a>
+          <a href="pages/crime_report.html" class="hero-cta-sec"><i class="fa fa-shield-halved"></i>Report Crime</a>
+          <a href="pages/complaint_tracker.html" class="hero-cta-sec"><i class="fa fa-search"></i>Track Status</a>
+          <a href="pages/admin_dashboard.html" class="hero-cta-sec"><i class="fa fa-chart-line"></i>Analytics</a>
+        </div>
+        <div class="hero-metrics">
+          <div class="metric-card">
+            <div class="metric-top"><span class="metric-icon"><i class="fa fa-list-check"></i></span><span class="metric-trend">+8.2%</span></div>
+            <div class="metric-value" style="color:var(--accent)" data-count-to="523">0</div><div class="metric-label">Complaints Tracked</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-top"><span class="metric-icon"><i class="fa fa-circle-check"></i></span><span class="metric-trend">+5.1%</span></div>
+            <div class="metric-value" style="color:var(--success)" data-count-to="65" data-suffix="%">0%</div><div class="metric-label">Resolution Rate</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-top"><span class="metric-icon"><i class="fa fa-clock"></i></span><span class="metric-trend">-6.4%</span></div>
+            <div class="metric-value" style="color:var(--warning)" data-count-to="31" data-suffix="h">0h</div><div class="metric-label">Avg Resolution</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-top"><span class="metric-icon"><i class="fa fa-fire"></i></span><span class="metric-trend">+2.0%</span></div>
+            <div class="metric-value" style="color:var(--danger)" data-count-to="5">0</div><div class="metric-label">Active Hotspots</div>
+          </div>
+        </div>
+        <div class="live-activity">
+          <div class="live-activity-head">
+            <strong style="font-size:12px;color:#e2e8f0;letter-spacing:.2px"><i class="fa fa-wave-square me-1" style="color:var(--accent)"></i>Live Activity</strong>
+            <span style="font-size:11px;color:#94a3b8">Real-time updates</span>
+          </div>
+          <ul id="liveActivityList" class="live-activity-list"></ul>
+        </div>
+      </div>
+      <div class="col-lg-6 d-none d-lg-block">
+        <div class="spline-wrap">
+          <div id="smartCityMap" aria-label="Smart City Complaint Map" class="rounded-xl overflow-hidden ring-1 ring-slate-700/60"></div>
+          <div class="map-overlay-chip">Live Map Lens: <b>Pune Wards</b></div>
+          <div id="smartCitySceneFallback" class="scene-fallback">
+            <canvas id="heroChart" height="220"></canvas>
+          </div>
+          <div class="scene-controls">
+            <button class="scene-btn" onclick="window.smartCityScene?.focusOnWard('Hadapsar')">Focus Hadapsar</button>
+            <button class="scene-btn" onclick="window.smartCityScene?.focusOnWard('Kothrud')">Focus Kothrud</button>
+            <button class="scene-btn" onclick="window.smartCityScene?.setTimeOfDay(20)">Night View</button>
+            <button class="scene-btn" onclick="window.smartCityScene?.setTimeOfDay(10)">Day View</button>
+            <button class="scene-btn filter-btn" data-filter-status="Critical">Critical</button>
+            <button class="scene-btn filter-btn" data-filter-status="Medium">Medium</button>
+            <button class="scene-btn filter-btn" data-filter-status="Resolved">Resolved</button>
+            <button class="scene-btn filter-btn active" data-filter-status="ALL">All</button>
+          </div>
+          <div class="scene-legend">
+            <div class="scene-legend-item"><span class="scene-dot" style="background:#ff334d"></span>Critical Hotspot</div>
+            <div class="scene-legend-item"><span class="scene-dot" style="background:#facc15"></span>Medium Issue</div>
+            <div class="scene-legend-item"><span class="scene-dot" style="background:#22c55e"></span>Resolved</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STAT STRIP -->
+<div class="stat-strip">
+  <div class="container">
+    <div class="row g-0">
+      <div class="col-3 stat-item"><div class="stat-value" style="color:var(--accent)">523</div><div class="stat-label">Total Complaints</div></div>
+      <div class="col-3 stat-item"><div class="stat-value" style="color:var(--warning)">124</div><div class="stat-label">Pending</div></div>
+      <div class="col-3 stat-item"><div class="stat-value" style="color:var(--success)">341</div><div class="stat-label">Resolved</div></div>
+      <div class="col-3 stat-item"><div class="stat-value" style="color:var(--danger)">17</div><div class="stat-label">Critical</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section>
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-badge"><i class="fa fa-star"></i>Platform Features</div>
+      <h2 class="section-title">Powered by Advanced Analytics</h2>
+      <p class="section-sub mx-auto">More than complaint management — a decision support system for smarter governance.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(244,67,54,.1);color:#f44336"><i class="fa fa-fire"></i></div>
+          <h5 class="fw-bold mb-2">Hotspot Detection</h5>
+          <p style="font-size:13px;color:var(--text-muted)">AI-powered analysis identifies neighborhoods with complaint spikes for proactive city management.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(0,176,255,.1);color:#00b0ff"><i class="fa fa-robot"></i></div>
+          <h5 class="fw-bold mb-2">Auto-Priority Engine</h5>
+          <p style="font-size:13px;color:var(--text-muted)">Complaints auto-classified as Critical/High/Medium/Low based on category and complaint frequency.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(0,200,83,.1);color:#00c853"><i class="fa fa-sitemap"></i></div>
+          <h5 class="fw-bold mb-2">Smart Department Routing</h5>
+          <p style="font-size:13px;color:var(--text-muted)">Complaints instantly routed: Roads→Engineering, Garbage→Sanitation, Water→Utilities.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon" style="background:rgba(255,171,0,.1);color:#ffab00"><i class="fa fa-clock"></i></div>
+          <h5 class="fw-bold mb-2">SLA & Response Analytics</h5>
+          <p style="font-size:13px;color:var(--text-muted)">Track resolution time per complaint and department performance against SLA targets.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AUTH MODAL -->
+<div class="modal fade" id="authModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-dark">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <div class="brand ms-0">
+          <div class="brand-logo"><i class="fa fa-city text-white"></i></div>
+          <div>
+            <div style="font-size:14px;font-weight:800">SmartCity Portal</div>
+            <div style="font-size:11px;color:var(--text-muted)">Citizen Login / Registration</div>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-0">
+        <div class="auth-shell">
+          <div class="auth-side">
+            <h6>Smart Access</h6>
+            <div class="auth-benefit"><i class="fa fa-shield-halved"></i><span>Secure sign-in for citizens, admins, and officers.</span></div>
+            <div class="auth-benefit"><i class="fa fa-bell"></i><span>Email updates on complaint progress and resolutions.</span></div>
+            <div class="auth-benefit"><i class="fa fa-chart-line"></i><span>Direct access to dashboards, hotspots, and status tracking.</span></div>
+            <div class="mt-3 p-3 rounded" style="background:rgba(0,176,255,.05);border:1px solid rgba(0,176,255,.1);font-size:12px">
+              <div style="font-weight:700;color:var(--accent);margin-bottom:4px">Demo Credentials</div>
+              <div style="color:var(--text-muted)">Admin: admin@smartcity.gov / Admin@123</div>
+              <div style="color:var(--text-muted)">Citizen: aarav.sharma@gmail.com / Admin@123</div>
+            </div>
+          </div>
+          <div class="auth-form-wrap">
+            <!-- TABS -->
+            <div class="d-flex gap-1 mb-4 p-1 rounded" style="background:#0d1117">
+              <button class="tab-btn active flex-fill" id="loginTabBtn" onclick="switchTab('login')">Login</button>
+              <button class="tab-btn flex-fill" id="registerTabBtn" onclick="switchTab('register')">Register</button>
+            </div>
+
+            <!-- LOGIN -->
+            <div id="loginForm">
+              <div class="mb-3">
+                <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Email Address</label>
+                <input type="email" class="form-control-dark" id="loginEmail" placeholder="your@email.com">
+              </div>
+              <div class="mb-3">
+                <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Password</label>
+                <input type="password" class="form-control-dark" id="loginPassword" placeholder="••••••••">
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <label style="font-size:12px;color:var(--text-muted)">
+                  <input type="checkbox" style="accent-color:var(--accent);margin-right:6px">Remember me
+                </label>
+                <a href="pages/complaint_tracker.html" style="font-size:12px;color:var(--accent);text-decoration:none">Forgot password?</a>
+              </div>
+              <div class="mb-3">
+                <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Notification Gmail (Optional)</label>
+                <div class="d-flex gap-2">
+                  <input type="email" class="form-control-dark" id="prefEmailLogin" placeholder="name@gmail.com" style="flex:1">
+                  <button type="button" class="btn-outline-accent" onclick="openGmailChooser()" style="white-space:nowrap">
+                    <i class="fa-brands fa-google me-1"></i>Choose
+                  </button>
+                </div>
+              </div>
+              <button class="login-btn" onclick="doLogin()"><i class="fa fa-right-to-bracket me-2"></i>Sign In</button>
+            </div>
+
+            <!-- REGISTER -->
+            <div id="registerForm" style="display:none">
+              <div class="row g-2">
+                <div class="col-12 mb-2">
+                  <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Full Name</label>
+                  <input type="text" class="form-control-dark" id="registerFullName" placeholder="Your full name">
+                </div>
+                <div class="col-12 mb-2">
+                  <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Email Address</label>
+                  <input type="email" class="form-control-dark" id="registerEmail" placeholder="your@email.com">
+                </div>
+                <div class="col-12 mb-2">
+                  <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Mobile Number</label>
+                  <input type="tel" class="form-control-dark" id="registerPhone" placeholder="+91 98765 43210">
+                </div>
+                <div class="col-12 mb-2">
+                  <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Password</label>
+                  <input type="password" class="form-control-dark" id="registerPassword" placeholder="Min 8 characters">
+                </div>
+                <div class="col-12 mb-2">
+                  <label style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Notification Gmail (Optional)</label>
+                  <div class="d-flex gap-2">
+                    <input type="email" class="form-control-dark" id="registerPreferredEmail" placeholder="name@gmail.com" style="flex:1">
+                    <button type="button" class="btn-outline-accent" onclick="openGmailChooser()" style="white-space:nowrap">
+                      <i class="fa-brands fa-google me-1"></i>Choose
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button class="login-btn" onclick="doRegister()"><i class="fa fa-user-plus me-2"></i>Create Account</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="row g-4 mb-4">
+      <div class="col-lg-4">
+        <div class="brand mb-3"><div class="brand-logo"><i class="fa fa-city text-white"></i></div>SmartCity</div>
+        <p style="font-size:13px;color:var(--text-muted);max-width:280px">Advanced complaint analytics & decision support for smarter urban governance.</p>
+      </div>
+      <div class="col-lg-2">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Citizens</div>
+        <a href="pages/submit_complaint.html" class="footer-link">Submit Complaint</a>
+        <a href="pages/crime_report.html" class="footer-link">Report Crime</a>
+        <a href="pages/complaint_tracker.html" class="footer-link">Track Status</a>
+        <a href="pages/complaint_tracker.html" class="footer-link">FAQ</a>
+      </div>
+      <div class="col-lg-2">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Admin</div>
+        <a href="pages/admin_dashboard.html" class="footer-link">Analytics Dashboard</a>
+        <a href="pages/admin_complaints.html" class="footer-link">Complaint Mgmt</a>
+        <a href="pages/admin_complaints.html" class="footer-link">Department Panel</a>
+      </div>
+      <div class="col-lg-4">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Contact</div>
+        <p style="font-size:13px;color:var(--text-muted)"><i class="fa fa-envelope me-2" style="color:var(--accent)"></i>support@smartcity.gov</p>
+        <p style="font-size:13px;color:var(--text-muted)"><i class="fa fa-phone me-2" style="color:var(--accent)"></i>1800-CITY-HELP (Toll Free)</p>
+      </div>
+    </div>
+    <div class="border-top pt-3 d-flex justify-content-between align-items-center" style="border-color:var(--card-border)!important">
+      <div style="font-size:12px;color:var(--text-muted)">© 2024 SmartCity Analytics. DBMS Project.</div>
+      <div style="font-size:12px;color:var(--text-muted)">Built with MySQL · Flask · Chart.js</div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+const complaintSampleData = [
+  { id: 1, lat: 18.5152, lng: 73.9278, status: 'Critical', title: 'Water Leakage', area: 'Hadapsar', description: 'Major pipeline leak affecting two blocks.' },
+  { id: 2, lat: 18.5291, lng: 73.8416, status: 'Medium', title: 'Garbage Overflow', area: 'Shivajinagar', description: 'Collection delayed near FC Road signal.' },
+  { id: 3, lat: 18.5590, lng: 73.7868, status: 'Resolved', title: 'Streetlight Restored', area: 'Baner', description: 'Faulty lamp fixed in lane 4.' },
+  { id: 4, lat: 18.5074, lng: 73.8077, status: 'Critical', title: 'Water Supply Down', area: 'Kothrud', description: 'No supply since late night.' },
+  { id: 5, lat: 18.5518, lng: 73.9498, status: 'Medium', title: 'Sewage Blockage', area: 'Kharadi', description: 'Drainage choke causing street flooding.' },
+  { id: 6, lat: 18.5601, lng: 73.8097, status: 'Resolved', title: 'Park Cleanup', area: 'Aundh', description: 'Park waste removed and bins replaced.' },
+  { id: 7, lat: 18.4899, lng: 73.8547, status: 'Critical', title: 'Traffic Signal Failure', area: 'Swargate', description: 'Signal lights down at major junction.' },
+  { id: 8, lat: 18.5314, lng: 73.8446, status: 'Medium', title: 'Pothole Cluster', area: 'Deccan', description: 'Recurring potholes after rain.' },
+  { id: 9, lat: 18.5722, lng: 73.8790, status: 'Resolved', title: 'Street Light Repair', area: 'Pimpri', description: 'Street lights restored in main road.' },
+  { id: 10, lat: 18.4633, lng: 73.8660, status: 'Critical', title: 'Illegal Dumping', area: 'Kondhwa', description: 'Construction debris dumped near school.' },
+  { id: 11, lat: 18.5408, lng: 73.9321, status: 'Medium', title: 'Garbage Pickup Delay', area: 'Viman Nagar', description: 'Waste pickup not done for 3 days.' },
+  { id: 12, lat: 18.5160, lng: 73.7805, status: 'Resolved', title: 'Road Crack Filled', area: 'Warje', description: 'Road patchwork completed by ward team.' },
+  { id: 13, lat: 18.5862, lng: 73.8145, status: 'Critical', title: 'Water Contamination Alert', area: 'Nigdi', description: 'Residents reported muddy water supply.' },
+  { id: 14, lat: 18.5387, lng: 73.8955, status: 'Medium', title: 'Stray Animal Complaint', area: 'Yerawada', description: 'Frequent stray dogs near bus stop.' },
+  { id: 15, lat: 18.5062, lng: 73.9260, status: 'Resolved', title: 'Sewage Cleared', area: 'Mundhwa', description: 'Drain cleaning team resolved blockage.' },
+  { id: 16, lat: 18.5228, lng: 73.8740, status: 'Critical', title: 'Road Cave-in Risk', area: 'Camp', description: 'Road depression widening rapidly.' }
+];
+
+function createComplaintIcon(status){
+  const cls = String(status || '').toLowerCase();
+  return L.divIcon({
+    className: `complaint-pin ${cls}`,
+    html: '<span class="pin-core" style="position:relative"></span>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7]
+  });
+}
+
+function initSmartCityMap(){
+  const mapEl = document.getElementById('smartCityMap');
+  if (!mapEl || !window.L) return;
+
+  const map = L.map(mapEl, { zoomControl: true, scrollWheelZoom: true, preferCanvas: true }).setView([18.5204, 73.8567], 12);
+  const dayLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap &copy; CARTO' });
+  const nightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap &copy; CARTO' });
+  nightLayer.addTo(map);
+
+  const iconByStatus = {
+    Critical: createComplaintIcon('critical'),
+    Medium: createComplaintIcon('medium'),
+    Resolved: createComplaintIcon('resolved')
+  };
+
+  const markerLayer = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: true,
+    zoomToBoundsOnClick: true,
+    iconCreateFunction(cluster){
+      const markers = cluster.getAllChildMarkers();
+      const statuses = markers.map((m) => m.options.complaintStatus);
+      let cls = 'medium';
+      if (statuses.includes('Critical')) cls = 'critical';
+      else if (statuses.every((s) => s === 'Resolved')) cls = 'resolved';
+      return L.divIcon({
+        html: `<div class="cluster-shell ${cls}">${cluster.getChildCount()}</div>`,
+        className: '',
+        iconSize: [38, 38]
+      });
+    }
+  }).addTo(map);
+  let currentWardFilter = 'ALL';
+  let currentStatusFilter = 'ALL';
+  let sampleData = [...complaintSampleData];
+
+  const renderMarkers = (data) => {
+    markerLayer.clearLayers();
+    const filtered = data.filter((item) => {
+      const wardMatch = currentWardFilter === 'ALL' || item.area.toLowerCase() === currentWardFilter.toLowerCase();
+      const statusMatch = currentStatusFilter === 'ALL' || item.status === currentStatusFilter;
+      return wardMatch && statusMatch;
+    });
+    filtered.forEach((item) => {
+      L.marker([item.lat, item.lng], {
+          icon: iconByStatus[item.status] || iconByStatus.Medium,
+          complaintStatus: item.status
+        })
+        .bindPopup(`<div style="min-width:210px"><div style="font-weight:700;color:#e2e8f0">${item.title}</div><div style="font-size:12px;color:#94a3b8;margin:4px 0">${item.area} · ${item.status}</div><div style="font-size:12px;color:#cbd5e1">${item.description}</div></div>`)
+        .addTo(markerLayer);
+    });
+  };
+
+  renderMarkers(sampleData);
+  const controls = document.querySelectorAll('.filter-btn');
+  controls.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      controls.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentStatusFilter = btn.dataset.filterStatus || 'ALL';
+      renderMarkers(sampleData);
+    });
+  });
+
+  window.smartCityScene = {
+    focusOnWard(wardName){
+      currentWardFilter = wardName || 'ALL';
+      renderMarkers(sampleData);
+      const wardPoints = sampleData.filter((c) => c.area.toLowerCase() === String(wardName).toLowerCase());
+      if (wardPoints.length) {
+        const bounds = L.latLngBounds(wardPoints.map((w) => [w.lat, w.lng]));
+        map.flyToBounds(bounds, { padding: [40, 40], duration: 0.8 });
+      }
+    },
+    setTimeOfDay(hour){
+      const isNight = Number(hour) >= 18 || Number(hour) < 6;
+      if (isNight && !map.hasLayer(nightLayer)) {
+        map.removeLayer(dayLayer);
+        nightLayer.addTo(map);
+      } else if (!isNight && !map.hasLayer(dayLayer)) {
+        map.removeLayer(nightLayer);
+        dayLayer.addTo(map);
+      }
+    },
+    setComplaintCount(){},
+    focusOnZone(){},
+    playIdleAnimation(){},
+    pauseIdleAnimation(){}
+  };
+
+  window.addEventListener('resize', () => map.invalidateSize());
+
+  async function hydrateFromBackend(){
+    try {
+      const res = await fetch('http://127.0.0.1:5000/complaints', { credentials: 'include' });
+      if (!res.ok) return;
+      const payload = await res.json();
+      const data = Array.isArray(payload) ? payload : (payload?.data || []);
+      const mapped = data
+        .map((row, idx) => ({
+          id: row.id ?? idx + 1,
+          lat: Number(row.lat || row.latitude),
+          lng: Number(row.lng || row.longitude),
+          status: String(row.status || 'Medium').replace(/^\w/, (c) => c.toUpperCase()),
+          title: row.title || row.complaint_title || 'Complaint',
+          area: row.area || row.ward || row.zone || 'Unknown Area',
+          description: row.description || row.complaint_description || 'No description'
+        }))
+        .filter((r) => Number.isFinite(r.lat) && Number.isFinite(r.lng));
+      if (mapped.length) {
+        sampleData = mapped;
+        renderMarkers(sampleData);
+      }
+    } catch (_e) {}
+  }
+  hydrateFromBackend();
+
+  // Future backend integration:
+  // fetch('http://127.0.0.1:5000/complaints').then(r => r.json()).then(data => renderMarkers(transformComplaintPayload(data)));
+}
+
+initSmartCityMap();
+
+function animateMetricCards(){
+  const values = document.querySelectorAll('.metric-value[data-count-to]');
+  values.forEach((el) => {
+    const target = Number(el.dataset.countTo || 0);
+    const suffix = el.dataset.suffix || '';
+    const duration = 1100;
+    const start = performance.now();
+    const from = 0;
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const current = Math.round(from + ((target - from) * eased));
+      el.textContent = `${current}${suffix}`;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+animateMetricCards();
+
+const activityFeed = [
+  'Water issue reported in Hadapsar',
+  'Streetlight fixed in Kothrud',
+  'Garbage pickup resumed in Shivajinagar',
+  'Pothole repair crew assigned to Camp',
+  'Sewage blockage resolved in Mundhwa',
+  'Signal maintenance started in Swargate'
+];
+function startLiveActivity(){
+  const list = document.getElementById('liveActivityList');
+  if (!list) return;
+  const pushItem = (text) => {
+    const li = document.createElement('li');
+    li.className = 'live-activity-item';
+    li.innerHTML = `<i class="fa fa-circle me-2" style="font-size:8px;color:#22d3ee"></i>${text}`;
+    list.prepend(li);
+    while (list.children.length > 5) list.removeChild(list.lastChild);
+  };
+  activityFeed.slice(0, 4).reverse().forEach(pushItem);
+  let idx = 0;
+  setInterval(() => {
+    pushItem(activityFeed[idx % activityFeed.length]);
+    idx++;
+  }, 3200);
+}
+startLiveActivity();
+
+// HERO CHART (kept as hidden fallback asset)
+if (document.getElementById('heroChart')) new Chart(document.getElementById('heroChart'),{
+  type:'line',
+  data:{
+    labels:['Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul'],
+    datasets:[
+      {label:'Complaints',data:[52,38,45,52,41,63,58,72,67,79,84,91],
+       borderColor:'#00b0ff',backgroundColor:'rgba(0,176,255,.1)',fill:true,tension:.4,pointRadius:4,borderWidth:2},
+      {label:'Resolved',data:[35,24,31,37,28,42,39,51,44,55,59,64],
+       borderColor:'#00c853',backgroundColor:'rgba(0,200,83,.05)',fill:true,tension:.4,pointRadius:4,borderWidth:2}
+    ]},
+  options:{responsive:true,
+    plugins:{legend:{labels:{color:'#8b949e',font:{size:11},boxWidth:12}},
+             tooltip:{backgroundColor:'#161b22',borderColor:'#30363d',borderWidth:1}},
+    scales:{
+      x:{grid:{color:'rgba(48,54,61,.4)'},ticks:{color:'#8b949e',font:{size:10}}},
+      y:{grid:{color:'rgba(48,54,61,.4)'},ticks:{color:'#8b949e',font:{size:10}}}
+    }}
+});
+
+function switchTab(tab){
+  document.getElementById('loginForm').style.display    = tab==='login'?'block':'none';
+  document.getElementById('registerForm').style.display = tab==='register'?'block':'none';
+  document.getElementById('loginTabBtn').className    = 'tab-btn flex-fill'+(tab==='login'?' active':'');
+  document.getElementById('registerTabBtn').className = 'tab-btn flex-fill'+(tab==='register'?' active':'');
+}
+
+function openGmailChooser() {
+  window.open('https://accounts.google.com/AccountChooser?continue=https://mail.google.com/', '_blank');
+}
+
+function savePreferredEmail(preferredEmail){
+  if(!preferredEmail || !preferredEmail.includes('@')) return;
+  fetch('http://127.0.0.1:5000/api/auth/email-preference', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ preferred_email: preferredEmail })
+  }).catch(()=>{});
+}
+
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const preferredEmail = document.getElementById('prefEmailLogin').value.trim();
+
+  if (!email || !password) {
+    alert('Enter email and password');
+    return;
+  }
+
+  fetch('http://127.0.0.1:5000/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include',
+    body: JSON.stringify({
+      email: email,
+      password: password
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+        if (preferredEmail) {
+          savePreferredEmail(preferredEmail);
+        }
+        const userRole = data.data.role;
+        alert("Login success 🚀");
+        if (userRole === "admin" || userRole === "officer") {
+          window.location.href = "pages/admin_dashboard.html";
+        } else {
+          window.location.href = "pages/submit_complaint.html";
+        }
+    } else {
+        alert(data.error || "Invalid login");
+    }
+  });
+
+}
+
+function doRegister() {
+  const full_name = document.getElementById('registerFullName').value.trim();
+  const email = document.getElementById('registerEmail').value.trim();
+  const phone = document.getElementById('registerPhone').value.trim();
+  const password = document.getElementById('registerPassword').value;
+  const preferred_email = document.getElementById('registerPreferredEmail').value.trim() || email;
+
+  if (!full_name || !email || !password) {
+    alert('Enter full name, email and password');
+    return;
+  }
+
+  fetch('http://127.0.0.1:5000/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ full_name, email, phone, password, preferred_email })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.success) {
+      alert(data.error || 'Registration failed');
+      return;
+    }
+    alert('Account created successfully. Please login.');
+    switchTab('login');
+    document.getElementById('loginEmail').value = email;
+    document.getElementById('loginPassword').value = '';
+  });
+}
+</script>
+</body>
+</html>

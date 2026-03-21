@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Report Crime | SmartCity</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+:root{--accent:#00b0ff;--dark-bg:#0d1117;--card-bg:#161b22;--card-border:#30363d;--text-primary:#e6edf3;--text-muted:#8b949e}
+body{background:var(--dark-bg);color:var(--text-primary);font-family:'Segoe UI',sans-serif}
+.navbar-custom{background:var(--card-bg);border-bottom:1px solid var(--card-border);padding:12px 0}
+.nav-brand{font-weight:800;font-size:18px;color:var(--text-primary);text-decoration:none;display:flex;align-items:center;gap:10px}
+.nav-logo{width:36px;height:36px;background:linear-gradient(135deg,#1a237e,#1565c0);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.wrap{max-width:820px;margin:28px auto;padding:0 16px}
+.card-dark{background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:22px}
+.form-control,.form-select{background:#0d1117;border:1px solid var(--card-border);color:var(--text-primary)}
+.form-control:focus,.form-select:focus{background:#0d1117;border-color:var(--accent);color:var(--text-primary);box-shadow:0 0 0 3px rgba(0,176,255,.12)}
+label{font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.submit-btn{width:100%;border:none;border-radius:10px;padding:12px 16px;font-weight:700;background:linear-gradient(135deg,#1a237e,#1565c0);color:#fff}
+</style>
+</head>
+<body>
+<nav class="navbar-custom">
+  <div class="container d-flex align-items-center justify-content-between">
+    <a href="../index.html" class="nav-brand">
+      <div class="nav-logo"><i class="fa fa-city text-white"></i></div>SmartCity Portal
+    </a>
+    <div class="d-flex gap-2">
+      <a href="submit_complaint.html" class="btn btn-sm" style="background:rgba(0,176,255,.1);color:var(--accent);border:1px solid rgba(0,176,255,.2)"><i class="fa fa-file-circle-plus me-1"></i>Complaint</a>
+      <a href="../index.html" class="btn btn-sm btn-outline-secondary">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="card-dark">
+    <h4 class="fw-bold mb-1"><i class="fa fa-shield-halved me-2" style="color:#ff5252"></i>Report a Crime</h4>
+    <p style="color:var(--text-muted);font-size:13px">Submit an incident report for police/public safety review.</p>
+
+    <form id="crimeForm" class="mt-3">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label>Crime Type</label>
+          <select class="form-select" id="crimeTypeId" required></select>
+        </div>
+        <div class="col-md-6">
+          <label>Location</label>
+          <select class="form-select" id="locationId" required></select>
+        </div>
+        <div class="col-md-6">
+          <label>Incident Date</label>
+          <input type="date" class="form-control" id="incidentDate" required>
+        </div>
+        <div class="col-md-6">
+          <label>Incident Time (Optional)</label>
+          <input type="time" class="form-control" id="incidentTime">
+        </div>
+        <div class="col-md-6">
+          <label>Victim Count (Optional)</label>
+          <input type="number" min="0" class="form-control" id="victimCount" placeholder="0">
+        </div>
+        <div class="col-md-6">
+          <label>Police Station (Optional)</label>
+          <input type="text" class="form-control" id="assignedStation" placeholder="Station name">
+        </div>
+        <div class="col-12">
+          <label>Address / Landmark</label>
+          <input type="text" class="form-control" id="addressDetail" placeholder="Street, area, landmark">
+        </div>
+        <div class="col-12">
+          <label>Description</label>
+          <textarea class="form-control" id="description" rows="5" required placeholder="Write what happened..."></textarea>
+        </div>
+      </div>
+      <button class="submit-btn mt-3" type="submit"><i class="fa fa-paper-plane me-1"></i>Submit Crime Report</button>
+    </form>
+    <div id="result" class="mt-3" style="font-size:13px;color:var(--text-muted)"></div>
+  </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:5000/api';
+
+async function loadOptions() {
+  const [typesRes, locRes] = await Promise.all([
+    fetch(`${API}/crimes/types`, { credentials: 'include' }),
+    fetch(`${API}/locations`, { credentials: 'include' })
+  ]);
+
+  const typeData = typesRes.ok ? await typesRes.json() : { data: [] };
+  const locData = locRes.ok ? await locRes.json() : { data: [] };
+  const types = typeData.data || [];
+  const locations = locData.data || [];
+
+  document.getElementById('crimeTypeId').innerHTML =
+    `<option value="">Select crime type</option>` +
+    types.map(t => `<option value="${t.crime_type_id}">${t.type_name} (${t.severity})</option>`).join('');
+
+  document.getElementById('locationId').innerHTML =
+    `<option value="">Select location</option>` +
+    locations.map(l => `<option value="${l.location_id}">${l.area_name} (${l.ward_number})</option>`).join('');
+}
+
+document.getElementById('incidentDate').value = new Date().toISOString().slice(0,10);
+
+document.getElementById('crimeForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const payload = {
+    crime_type_id: document.getElementById('crimeTypeId').value,
+    location_id: document.getElementById('locationId').value,
+    incident_date: document.getElementById('incidentDate').value,
+    incident_time: document.getElementById('incidentTime').value || null,
+    victim_count: document.getElementById('victimCount').value || 0,
+    assigned_station: document.getElementById('assignedStation').value.trim(),
+    address_detail: document.getElementById('addressDetail').value.trim(),
+    description: document.getElementById('description').value.trim()
+  };
+
+  const out = document.getElementById('result');
+  out.textContent = 'Submitting...';
+
+  try {
+    const res = await fetch(`${API}/crimes`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      out.style.color = '#ff6b6b';
+      out.textContent = data.error || 'Failed to submit crime report. Please login first.';
+      return;
+    }
+    out.style.color = '#00c853';
+    out.textContent = `Crime report submitted. Code: ${data.data.incident_code}`;
+    document.getElementById('crimeForm').reset();
+    document.getElementById('incidentDate').value = new Date().toISOString().slice(0,10);
+  } catch (_e) {
+    out.style.color = '#ff6b6b';
+    out.textContent = 'Unable to connect to server.';
+  }
+});
+
+loadOptions();
+</script>
+</body>
+</html>

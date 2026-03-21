@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Submit Complaint | SmartCity</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+:root{--primary:#6d28d9;--accent:#22d3ee;--success:#22c55e;--warning:#f59e0b;--danger:#f43f5e;
+  --dark-bg:#070b16;--card-bg:#111827;--card-border:#24304a;--text-primary:#eef4ff;--text-muted:#9fb0ca}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(900px 500px at 8% -10%,rgba(34,211,238,.15),transparent 58%),radial-gradient(900px 520px at 95% -8%,rgba(109,40,217,.2),transparent 58%),var(--dark-bg);color:var(--text-primary);font-family:'Segoe UI',sans-serif;min-height:100vh}
+.navbar-custom{background:var(--card-bg);border-bottom:1px solid var(--card-border);padding:12px 0}
+.nav-brand{font-weight:800;font-size:18px;color:var(--text-primary);text-decoration:none;display:flex;align-items:center;gap:10px}
+.nav-logo{width:36px;height:36px;background:linear-gradient(135deg,#6d28d9,#22d3ee);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:15px}
+.hero-strip{background:linear-gradient(135deg,#070b16 0%,#6d28d933 45%,#22d3ee1f 100%);
+  border-bottom:1px solid var(--card-border);padding:32px 0}
+.form-container{max-width:760px;margin:0 auto;padding:32px 16px}
+.form-card{background:linear-gradient(180deg,rgba(17,24,39,.96),rgba(10,14,28,.96));border:1px solid var(--card-border);border-radius:16px;padding:32px;margin-bottom:24px;box-shadow:0 14px 36px rgba(34,211,238,.08)}
+.section-title{font-size:15px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.section-num{width:28px;height:28px;border-radius:8px;background:rgba(0,176,255,.15);
+  color:var(--accent);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+label.form-label{font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.form-control,.form-select{background:#0d1117;border:1px solid var(--card-border);color:var(--text-primary);
+  border-radius:10px;padding:12px 14px;font-size:14px;transition:.2s}
+.form-control:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,176,255,.12);
+  background:#0d1117;color:var(--text-primary);outline:none}
+.form-control::placeholder{color:var(--text-muted)}
+textarea.form-control{resize:vertical;min-height:120px}
+/* CATEGORY CARDS */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.cat-card{border:2px solid var(--card-border);border-radius:12px;padding:14px 10px;cursor:pointer;
+  transition:.2s;text-align:center;background:#0d1117}
+.cat-card:hover{border-color:rgba(0,176,255,.4);background:rgba(0,176,255,.05)}
+.cat-card.selected{border-color:var(--accent);background:rgba(0,176,255,.1)}
+.cat-card i{font-size:22px;margin-bottom:8px;display:block;color:var(--text-muted);transition:.2s}
+.cat-card.selected i{color:var(--accent)}
+.cat-card span{font-size:11px;font-weight:600;color:var(--text-muted);line-height:1.3;display:block}
+.cat-card.selected span{color:var(--text-primary)}
+/* PRIORITY INDICATOR */
+.priority-indicator{display:none;background:rgba(0,176,255,.08);border:1px solid rgba(0,176,255,.2);
+  border-radius:10px;padding:12px 16px;margin-top:12px}
+.priority-indicator.show{display:flex;align-items:center;gap:10px}
+.ai-suggestions{display:none;margin-top:12px;background:#0d1117;border:1px solid var(--card-border);border-radius:10px;padding:12px}
+.ai-suggestions.show{display:block}
+.ai-header{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.ai-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid var(--card-border);border-radius:8px;margin-bottom:8px}
+.ai-item:last-child{margin-bottom:0}
+.ai-name{font-size:12px;font-weight:600}
+.ai-confidence{font-size:11px;color:var(--text-muted)}
+.ai-use{background:rgba(0,176,255,.12);border:1px solid rgba(0,176,255,.25);color:var(--accent);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer}
+.urgency-wrap{margin-top:10px}
+.urgency-head{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:5px}
+.urgency-track{height:8px;background:#1d2734;border-radius:6px;overflow:hidden}
+.urgency-fill{height:100%;width:0;background:var(--success);transition:.2s}
+.urgency-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid transparent;margin-top:8px}
+.img-ai-badge{display:none;margin-top:10px;padding:8px 10px;border-radius:8px;border:1px solid rgba(0,176,255,.2);background:rgba(0,176,255,.08);font-size:12px}
+.img-ai-badge.show{display:block}
+/* FILE UPLOAD */
+.upload-zone{border:2px dashed var(--card-border);border-radius:12px;padding:32px;
+  text-align:center;cursor:pointer;transition:.2s}
+.upload-zone:hover{border-color:rgba(0,176,255,.4);background:rgba(0,176,255,.03)}
+.upload-zone input[type=file]{display:none}
+/* LOCATION GRID */
+.loc-select{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.loc-chip{border:1px solid var(--card-border);border-radius:8px;padding:10px 14px;cursor:pointer;
+  font-size:13px;transition:.2s;background:#0d1117;display:flex;align-items:center;gap:8px}
+.loc-chip:hover{border-color:rgba(0,176,255,.4)}
+.loc-chip.selected{border-color:var(--accent);background:rgba(0,176,255,.08)}
+.loc-chip i{font-size:12px;color:var(--text-muted)}
+/* SUBMIT BUTTON */
+.submit-btn{background:linear-gradient(135deg,var(--primary),#1565c0);color:#fff;border:none;
+  border-radius:12px;padding:16px 40px;font-size:15px;font-weight:700;cursor:pointer;
+  transition:.2s;width:100%;letter-spacing:.5px}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,176,255,.25)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+/* STEP INDICATOR */
+.steps{display:flex;gap:0;margin-bottom:32px}
+.step{flex:1;text-align:center;position:relative}
+.step-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--card-border);
+  background:var(--card-bg);color:var(--text-muted);display:flex;align-items:center;
+  justify-content:center;margin:0 auto;font-size:13px;font-weight:700;position:relative;z-index:1;transition:.3s}
+.step.active .step-dot{border-color:var(--accent);color:var(--accent);background:rgba(0,176,255,.1)}
+.step.done .step-dot{border-color:var(--success);color:var(--success);background:rgba(0,200,83,.1)}
+.step-label{font-size:10px;color:var(--text-muted);margin-top:6px;font-weight:600;text-transform:uppercase}
+.step::after{content:'';position:absolute;top:16px;left:50%;width:100%;height:2px;background:var(--card-border);z-index:0}
+.step:last-child::after{display:none}
+/* SUCCESS STATE */
+.success-screen{text-align:center;padding:48px 24px}
+.success-icon{width:80px;height:80px;border-radius:50%;background:rgba(0,200,83,.15);
+  color:var(--success);font-size:36px;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 24px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,200,83,.3)}50%{box-shadow:0 0 0 16px rgba(0,200,83,0)}}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar-custom">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between">
+      <a href="../index.html" class="nav-brand">
+        <div class="nav-logo"><i class="fa fa-city text-white"></i></div>
+        SmartCity Portal
+      </a>
+      <div class="d-flex align-items-center gap-3">
+        <a href="crime_report.html" class="btn btn-sm" style="background:rgba(255,82,82,.1);color:#ff7a7a;border:1px solid rgba(255,82,82,.25)">
+          <i class="fa fa-shield-halved me-1"></i>Report Crime
+        </a>
+        <a href="complaint_tracker.html" class="btn btn-sm" style="background:rgba(0,176,255,.1);color:var(--accent);border:1px solid rgba(0,176,255,.2)">
+          <i class="fa fa-search me-1"></i>Track Complaint
+        </a>
+        <a href="../index.html" class="btn btn-sm btn-outline-secondary">Logout</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-strip">
+  <div class="container">
+    <h3 class="fw-bold mb-1"><i class="fa fa-file-circle-plus me-2" style="color:var(--accent)"></i>Submit a Complaint</h3>
+    <p style="color:var(--text-muted);margin:0">Report civic issues in your area. Auto-routed to the right department.</p>
+  </div>
+</div>
+
+<div class="form-container">
+  <!-- STEP INDICATOR -->
+  <div class="steps">
+    <div class="step active" id="step1-dot"><div class="step-dot">1</div><div class="step-label">Category</div></div>
+    <div class="step" id="step2-dot"><div class="step-dot">2</div><div class="step-label">Details</div></div>
+    <div class="step" id="step3-dot"><div class="step-dot">3</div><div class="step-label">Location</div></div>
+    <div class="step" id="step4-dot"><div class="step-dot">4</div><div class="step-label">Submit</div></div>
+  </div>
+
+  <form id="complaintForm" onsubmit="handleSubmit(event)">
+
+    <!-- STEP 1: CATEGORY -->
+    <div class="form-card" id="section-category">
+      <div class="section-title"><div class="section-num">1</div>Select Issue Category</div>
+      <div class="cat-grid" id="catGrid">
+        <!-- JS rendered -->
+      </div>
+      <div class="priority-indicator" id="priorityIndicator">
+        <i class="fa fa-robot" style="color:var(--accent);font-size:18px"></i>
+        <div>
+          <div style="font-size:12px;color:var(--text-muted)">Auto-assigned priority</div>
+          <div id="priorityText" style="font-weight:700;font-size:14px"></div>
+        </div>
+        <div class="ms-auto" style="font-size:12px;color:var(--text-muted)">
+          <i class="fa fa-building me-1"></i><span id="deptText"></span>
+        </div>
+      </div>
+      <input type="hidden" id="catId" name="cat_id">
+    </div>
+
+    <!-- STEP 2: COMPLAINT DETAILS -->
+    <div class="form-card" id="section-details">
+      <div class="section-title"><div class="section-num">2</div>Complaint Details</div>
+      <div class="mb-3">
+        <label class="form-label">Complaint Title *</label>
+        <input type="text" class="form-control" name="title" id="titleInput"
+          placeholder="Brief title describing the issue" required maxlength="300">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Detailed Description *</label>
+        <textarea class="form-control" name="description" id="descInput"
+          placeholder="Describe the issue in detail — location landmark, when it started, impact on residents..." required minlength="20"></textarea>
+        <div class="d-flex justify-content-end mt-1" style="font-size:11px;color:var(--text-muted)">
+          <span id="charCount">0</span>/500 characters
+        </div>
+        <div class="urgency-wrap">
+          <div class="urgency-head"><span>Urgency Indicator</span><span id="urgencyScore">0/10</span></div>
+          <div class="urgency-track"><div id="urgencyFill" class="urgency-fill"></div></div>
+          <div id="urgencyBadge" class="urgency-badge" style="display:none"></div>
+        </div>
+        <div id="aiSuggestions" class="ai-suggestions"></div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Street / Landmark Address</label>
+        <input type="text" class="form-control" name="address_detail" id="addressInput"
+          placeholder="e.g. Near XYZ School, Main Road, opp. Post Office">
+      </div>
+    </div>
+
+    <!-- STEP 3: LOCATION -->
+    <div class="form-card" id="section-location">
+      <div class="section-title"><div class="section-num">3</div>Select Location / Area</div>
+      <label class="form-label mb-3">Choose your ward/area</label>
+      <div class="loc-select" id="locGrid"><!-- JS rendered --></div>
+      <input type="hidden" id="locId" name="location_id">
+    </div>
+
+    <!-- STEP 4: ATTACH & SUBMIT -->
+    <div class="form-card" id="section-submit">
+      <div class="section-title"><div class="section-num">4</div>Attach Photo (Optional)</div>
+      <div class="upload-zone" onclick="document.getElementById('imgInput').click()">
+        <input type="file" id="imgInput" accept="image/*" onchange="previewImage(event)">
+        <div id="uploadContent">
+          <i class="fa fa-cloud-upload-alt fa-2x mb-2" style="color:var(--text-muted)"></i>
+          <p style="color:var(--text-muted);font-size:14px;margin:0">Click to upload photo of the issue</p>
+          <p style="color:var(--text-muted);font-size:12px;margin:4px 0 0">JPG, PNG up to 5MB</p>
+        </div>
+        <img id="imgPreview" style="max-height:200px;border-radius:8px;display:none;margin:0 auto">
+      </div>
+      <div id="imgAiBadge" class="img-ai-badge"></div>
+
+      <div class="mt-4 p-3 rounded" style="background:rgba(0,176,255,.06);border:1px solid rgba(0,176,255,.15)">
+        <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px">
+          <i class="fa fa-robot me-1"></i>SmartCity Automation Preview
+        </div>
+        <div class="row g-2" style="font-size:12px;color:var(--text-muted)">
+          <div class="col-6"><i class="fa fa-tag me-1"></i>Category: <strong id="prevCat" class="text-primary">—</strong></div>
+          <div class="col-6"><i class="fa fa-building me-1"></i>Routed to: <strong id="prevDept" class="text-primary">—</strong></div>
+          <div class="col-6"><i class="fa fa-flag me-1"></i>Priority: <strong id="prevPriority" class="text-primary">—</strong></div>
+          <div class="col-6"><i class="fa fa-map-marker me-1"></i>Area: <strong id="prevArea" class="text-primary">—</strong></div>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn mt-4" id="submitBtn">
+        <i class="fa fa-paper-plane me-2"></i>Submit Complaint
+      </button>
+    </div>
+  </form>
+
+  <!-- SUCCESS SCREEN -->
+  <div id="successScreen" style="display:none">
+    <div class="form-card success-screen">
+      <div class="success-icon"><i class="fa fa-check"></i></div>
+      <h4 class="fw-bold mb-2">Complaint Submitted!</h4>
+      <p style="color:var(--text-muted)">Your complaint has been auto-routed to the responsible department.</p>
+      <div class="mt-3 p-3 rounded" style="background:#0d1117;border:1px solid var(--card-border)">
+        <div style="font-size:12px;color:var(--text-muted)">Your Complaint Code</div>
+        <div id="complaintCodeDisplay" style="font-size:24px;font-weight:800;color:var(--accent);font-family:monospace"></div>
+      </div>
+      <div id="emailStatusNote" class="mt-2" style="font-size:13px;color:var(--text-muted)">
+        Email confirmation is being processed.
+      </div>
+      <div class="d-flex gap-3 mt-4 justify-content-center">
+        <a href="complaint_tracker.html" class="btn" style="background:rgba(0,176,255,.1);color:var(--accent);border:1px solid rgba(0,176,255,.2)">
+          <i class="fa fa-search me-1"></i>Track Status
+        </a>
+        <button class="btn btn-secondary" onclick="resetForm()"><i class="fa fa-plus me-1"></i>New Complaint</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+const API_BASE = 'http://127.0.0.1:5000';
+const CATEGORIES = [
+  {id:1,name:'Pothole / Road',icon:'fa-road',dept:'Engineering & Roads',priority:'High'},
+  {id:2,name:'Broken Footpath',icon:'fa-walking',dept:'Engineering & Roads',priority:'Medium'},
+  {id:3,name:'Street Light',icon:'fa-lightbulb',dept:'Electricity Board',priority:'Medium'},
+  {id:4,name:'Garbage / Waste',icon:'fa-trash',dept:'Sanitation & Waste',priority:'High'},
+  {id:5,name:'Illegal Dumping',icon:'fa-dumpster',dept:'Sanitation & Waste',priority:'High'},
+  {id:6,name:'Water Supply',icon:'fa-tint',dept:'Water & Utilities',priority:'Critical'},
+  {id:7,name:'Water Leakage',icon:'fa-water',dept:'Water & Utilities',priority:'Critical'},
+  {id:8,name:'Power Outage',icon:'fa-bolt',dept:'Electricity Board',priority:'Critical'},
+  {id:9,name:'Illegal Construct.',icon:'fa-building',dept:'Engineering & Roads',priority:'High'},
+  {id:10,name:'Park Damage',icon:'fa-tree',dept:'Parks & Recreation',priority:'Medium'},
+  {id:11,name:'Stray Animals',icon:'fa-dog',dept:'Public Safety',priority:'High'},
+  {id:12,name:'Mosquito / Pest',icon:'fa-bug',dept:'Health & Hygiene',priority:'High'},
+  {id:13,name:'Traffic Signal',icon:'fa-traffic-light',dept:'Transport & Traffic',priority:'Critical'},
+  {id:14,name:'Sewage Overflow',icon:'fa-toilet',dept:'Water & Utilities',priority:'Critical'},
+  {id:15,name:'Noise Pollution',icon:'fa-volume-up',dept:'Public Safety',priority:'Low'},
+  {id:16,name:'Air Pollution',icon:'fa-smog',dept:'Health & Hygiene',priority:'High'},
+  {id:17,name:'Property Damage',icon:'fa-hammer',dept:'Public Safety',priority:'Medium'},
+  {id:18,name:'Other',icon:'fa-question-circle',dept:'Public Safety',priority:'Low'}
+];
+
+const LOCATIONS = [
+  {id:1,name:'Koregaon Park',ward:'W01',zone:'East'},
+  {id:2,name:'Kothrud',ward:'W02',zone:'West'},
+  {id:3,name:'Hadapsar',ward:'W03',zone:'East'},
+  {id:4,name:'Aundh',ward:'W04',zone:'North'},
+  {id:5,name:'Shivajinagar',ward:'W05',zone:'Central'},
+  {id:6,name:'Pimpri',ward:'W06',zone:'North'},
+  {id:7,name:'Chinchwad',ward:'W07',zone:'North'},
+  {id:8,name:'Yerawada',ward:'W08',zone:'East'},
+  {id:9,name:'Bibwewadi',ward:'W09',zone:'South'},
+  {id:10,name:'Katraj',ward:'W10',zone:'South'},
+  {id:11,name:'Warje',ward:'W11',zone:'West'},
+  {id:12,name:'Baner',ward:'W12',zone:'West'},
+  {id:13,name:'Viman Nagar',ward:'W13',zone:'East'},
+  {id:14,name:'Kharadi',ward:'W14',zone:'East'},
+  {id:15,name:'Deccan',ward:'W15',zone:'Central'},
+  {id:16,name:'Swargate',ward:'W16',zone:'Central'},
+  {id:17,name:'Magarpatta',ward:'W17',zone:'South'},
+  {id:18,name:'Hinjewadi',ward:'W18',zone:'West'},
+  {id:19,name:'Wakad',ward:'W19',zone:'West'},
+  {id:20,name:'Pimple Saudagar',ward:'W20',zone:'North'}
+];
+
+let selectedCat = null, selectedLoc = null;
+let aiSuggestionState = { category: null, confidence: 0 };
+let sentimentState = { urgency_level: 'low', anger_level: 0 };
+
+function debounce(fn, delay=350){
+  let timer;
+  return (...args)=>{ clearTimeout(timer); timer = setTimeout(()=>fn(...args), delay); };
+}
+
+// Render category grid
+document.getElementById('catGrid').innerHTML = CATEGORIES.map(c=>`
+  <div class="cat-card" data-id="${c.id}" onclick="selectCat(${c.id})">
+    <i class="fa ${c.icon}"></i>
+    <span>${c.name}</span>
+  </div>`).join('');
+
+// Render location grid
+document.getElementById('locGrid').innerHTML = LOCATIONS.map(l=>`
+  <div class="loc-chip" data-id="${l.id}" onclick="selectLoc(${l.id})">
+    <i class="fa fa-map-marker-alt"></i>
+    <span>${l.name} <span style="color:var(--text-muted);font-size:11px">${l.ward}</span></span>
+  </div>`).join('');
+
+function selectCat(id){
+  selectedCat = CATEGORIES.find(c=>c.id===id);
+  document.querySelectorAll('.cat-card').forEach(el=>el.classList.remove('selected'));
+  document.querySelector(`.cat-card[data-id="${id}"]`).classList.add('selected');
+  document.getElementById('catId').value = id;
+
+  const pmap = {Critical:'#dc3545',High:'#fd7e14',Medium:'#ffc107',Low:'#28a745'};
+  document.getElementById('priorityIndicator').classList.add('show');
+  document.getElementById('priorityText').style.color = pmap[selectedCat.priority];
+  document.getElementById('priorityText').textContent = selectedCat.priority + ' Priority (auto-assigned)';
+  document.getElementById('deptText').textContent = selectedCat.dept;
+
+  updatePreview();
+  setStep(2);
+}
+
+function selectLoc(id){
+  selectedLoc = LOCATIONS.find(l=>l.id===id);
+  document.querySelectorAll('.loc-chip').forEach(el=>el.classList.remove('selected'));
+  document.querySelector(`.loc-chip[data-id="${id}"]`).classList.add('selected');
+  document.getElementById('locId').value = id;
+  updatePreview();
+  setStep(4);
+}
+
+function setStep(n){
+  for(let i=1;i<=4;i++){
+    const el = document.getElementById(`step${i}-dot`);
+    el.className = 'step' + (i<n?' done':i===n?' active':'');
+  }
+}
+
+function updatePreview(){
+  if(selectedCat){
+    document.getElementById('prevCat').textContent     = selectedCat.name;
+    document.getElementById('prevDept').textContent    = selectedCat.dept;
+    document.getElementById('prevPriority').textContent= selectedCat.priority;
+  }
+  if(selectedLoc){
+    document.getElementById('prevArea').textContent = selectedLoc.name+' ('+selectedLoc.ward+')';
+  }
+}
+
+// Character counter
+document.getElementById('descInput').addEventListener('input',function(){
+  document.getElementById('charCount').textContent = this.value.length;
+});
+
+const handleAiWhileTyping = debounce(async function(){
+  const text = document.getElementById('descInput').value.trim();
+  const title = document.getElementById('titleInput').value.trim();
+
+  if(text.length >= 10){
+    try{
+      const sentRes = await fetch(`${API_BASE}/api/complaints/analyze-sentiment`, {
+        method:'POST',
+        credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ title, description:text })
+      });
+      if(sentRes.ok){
+        const sentData = await sentRes.json();
+        if(sentData?.data?.sentiment){
+          sentimentState = sentData.data.sentiment;
+          paintUrgency(sentimentState);
+        }
+      }
+    }catch(_e){}
+  }
+
+  if(text.length < 30){
+    document.getElementById('aiSuggestions').classList.remove('show');
+    return;
+  }
+
+  try{
+    const res = await fetch(`${API_BASE}/api/complaints/suggest-category`, {
+      method:'POST',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ description:text })
+    });
+
+    if(!res.ok) return;
+    const payload = await res.json();
+    const suggestions = payload?.data?.suggestions || [];
+    renderSuggestions(suggestions);
+  }catch(_e){}
+}, 450);
+
+function paintUrgency(sentiment){
+  const score = Number(sentiment.anger_level || 0);
+  const level = sentiment.urgency_level || 'low';
+  const colorMap = { low:'#10b981', medium:'#f59e0b', high:'#f97316', critical:'#dc2626' };
+  const fill = document.getElementById('urgencyFill');
+  const scoreEl = document.getElementById('urgencyScore');
+  const badge = document.getElementById('urgencyBadge');
+  fill.style.width = Math.max(0, Math.min(100, score * 10)) + '%';
+  fill.style.background = colorMap[level] || '#10b981';
+  scoreEl.textContent = `${score.toFixed(1)}/10`;
+  badge.style.display = 'inline-flex';
+  badge.style.color = colorMap[level] || '#10b981';
+  badge.style.borderColor = `${colorMap[level]}66`;
+  badge.style.background = `${colorMap[level]}1a`;
+  badge.innerHTML = `<i class="fa fa-bolt"></i>${level.toUpperCase()} urgency`;
+}
+
+function renderSuggestions(suggestions){
+  const wrap = document.getElementById('aiSuggestions');
+  if(!suggestions.length){
+    wrap.classList.remove('show');
+    return;
+  }
+  wrap.classList.add('show');
+  wrap.innerHTML = `
+    <div class="ai-header"><i class="fa fa-robot"></i>AI Suggested Categories</div>
+    ${suggestions.map((s, idx)=>`
+      <div class="ai-item">
+        <div>
+          <div class="ai-name">${s.category_name}</div>
+          <div class="ai-confidence">Confidence: ${(Number(s.confidence||0)*100).toFixed(1)}%</div>
+        </div>
+        <button type="button" class="ai-use" onclick="acceptSuggestion(${s.category_id},'${String(s.category_name).replace(/'/g, "\\'")}',${Number(s.confidence||0)})">Use</button>
+      </div>
+    `).join('')}
+  `;
+}
+
+function acceptSuggestion(catId, catName, confidence){
+  aiSuggestionState = { category: catName, confidence: Number(confidence || 0) };
+  selectCat(catId);
+  const indicator = document.getElementById('priorityIndicator');
+  indicator.classList.add('show');
+  document.getElementById('priorityText').innerHTML = `${selectedCat.priority} Priority <span style="font-size:11px;color:var(--accent);margin-left:8px">AI Suggested ${(aiSuggestionState.confidence*100).toFixed(1)}%</span>`;
+}
+
+document.getElementById('descInput').addEventListener('input', handleAiWhileTyping);
+document.getElementById('titleInput').addEventListener('input', handleAiWhileTyping);
+
+// Image preview
+function previewImage(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev=>{
+    const img = document.getElementById('imgPreview');
+    img.src = ev.target.result;
+    img.style.display = 'block';
+    document.getElementById('uploadContent').style.display='none';
+
+    try{
+      const base64 = String(ev.target.result).split(',')[1];
+      const res = await fetch(`${API_BASE}/api/complaints/analyze-image`, {
+        method:'POST',
+        credentials:'include',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          image_base64: base64,
+          description_hint: document.getElementById('descInput').value || ''
+        })
+      });
+      if(res.ok){
+        const payload = await res.json();
+        const data = payload?.data || {};
+        const badge = document.getElementById('imgAiBadge');
+        badge.classList.add('show');
+        badge.innerHTML = `<i class="fa fa-camera me-1"></i>AI detected: <strong>${data.ai_detected_issue || 'Unknown'}</strong> (${(Number(data.confidence||0)*100).toFixed(0)}% confidence)`;
+      }
+    }catch(_e){}
+  };
+  reader.readAsDataURL(file);
+}
+
+// SUBMIT
+async function handleSubmit(e){
+  e.preventDefault();
+  if(!selectedCat){
+    alert('Please select a complaint category.');
+    return;
+  }
+  if(!selectedLoc){
+    alert('Please select a location.');
+    return;
+  }
+  const title = document.getElementById('titleInput').value.trim();
+  const description = document.getElementById('descInput').value.trim();
+  if(!title || description.length < 20){
+    alert('Please enter title and detailed description (minimum 20 characters).');
+    return;
+  }
+
+  try{
+    const res = await fetch('http://127.0.0.1:5000/api/complaints', {
+      method:'POST',
+      credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        cat_id:selectedCat.id,
+        location_id:selectedLoc.id,
+        title:title,
+        description:description,
+        address_detail:document.getElementById('addressInput').value,
+        ai_suggested_category: aiSuggestionState.category,
+        ai_confidence_score: aiSuggestionState.confidence,
+        sentiment_score: sentimentState.anger_level,
+        urgency_level: sentimentState.urgency_level
+      })
+    });
+
+    const data = await res.json();
+
+    if(res.status === 401){
+      alert("Login expired. Please login again.");
+      return;
+    }
+
+    if(!res.ok || !data.success){
+      alert(data.error || 'Failed to submit complaint');
+      return;
+    }
+
+    document.getElementById('complaintCodeDisplay').textContent = data.data.complaint_code;
+    const emailState = data?.data?.email_notification?.status || 'queued';
+    const emailMsg = emailState === 'sent'
+      ? 'Email confirmation sent to your inbox.'
+      : emailState === 'failed'
+        ? 'Complaint submitted. Email could not be sent right now.'
+        : 'Complaint submitted. Email confirmation has been queued.';
+    document.getElementById('emailStatusNote').textContent = emailMsg;
+    document.getElementById('complaintForm').style.display='none';
+    document.getElementById('successScreen').style.display='block';
+  }catch(_e){
+    alert('Unable to connect to server. Please ensure backend is running.');
+  }
+}
+
+function resetForm(){
+  selectedCat=null; selectedLoc=null;
+  document.getElementById('complaintForm').reset();
+  document.getElementById('complaintForm').style.display='block';
+  document.getElementById('successScreen').style.display='none';
+  document.querySelectorAll('.cat-card,.loc-chip').forEach(el=>el.classList.remove('selected'));
+  setStep(1);
+}
+</script>
+</body>
+</html>
