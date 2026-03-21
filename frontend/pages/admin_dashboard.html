@@ -301,7 +301,7 @@
 <!-- ══════════════ SCRIPTS ══════════════ -->
 <script>
 const API = 'http://127.0.0.1:5000/api';
-const DEMO_MODE = new URLSearchParams(window.location.search).get('live') !== '1';
+const DEMO_MODE = true;
 const toNum = (v, d = 0) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : d;
@@ -480,15 +480,17 @@ const demo = {
 
 // Chart instances
 let trendChart, catChart, deptChart, slaChart;
+const hasChartLib = () => typeof Chart !== 'undefined';
+
 function refreshDashboard(){
-  renderKPI();
-  renderMonthlyTrend();
-  renderCategoryChart();
-  renderDeptChart();
-  renderSLAChart();
-  renderHotspots();
-  renderHighPriority();
-  renderDeptTable();
+  try { renderKPI(); } catch(e){ console.error('renderKPI failed', e); }
+  try { renderMonthlyTrend(); } catch(e){ console.error('renderMonthlyTrend failed', e); }
+  try { renderCategoryChart(); } catch(e){ console.error('renderCategoryChart failed', e); }
+  try { renderDeptChart(); } catch(e){ console.error('renderDeptChart failed', e); }
+  try { renderSLAChart(); } catch(e){ console.error('renderSLAChart failed', e); }
+  try { renderHotspots(); } catch(e){ console.error('renderHotspots failed', e); }
+  try { renderHighPriority(); } catch(e){ console.error('renderHighPriority failed', e); }
+  try { renderDeptTable(); } catch(e){ console.error('renderDeptTable failed', e); }
 }
 
 function renderKPI(){
@@ -527,6 +529,7 @@ function chartCommonOptions(){
 }
 
 function renderMonthlyTrend(){
+  if(!hasChartLib()) return;
   const labels  = demo.monthly.map(m=>m.label);
   const totals  = demo.monthly.map(m=>m.total);
   const resolved= demo.monthly.map(m=>m.resolved);
@@ -553,6 +556,7 @@ function renderMonthlyTrend(){
 }
 
 function renderCategoryChart(){
+  if(!hasChartLib()) return;
   const cats   = demo.categories;
   const labels = cats.map(c=>c.cat_name);
   const values = cats.map(c=>c.total);
@@ -579,6 +583,7 @@ function renderCategoryChart(){
 }
 
 function renderDeptChart(){
+  if(!hasChartLib()) return;
   const depts = demo.departments;
   if(deptChart) deptChart.destroy();
   deptChart = new Chart(document.getElementById('deptChart'),{
@@ -601,6 +606,7 @@ function renderDeptChart(){
 }
 
 function renderSLAChart(){
+  if(!hasChartLib()) return;
   const sla = demo.sla;
   if(slaChart) slaChart.destroy();
   const colorsMap = {Critical:'#dc3545',High:'#fd7e14',Medium:'#ffc107',Low:'#28a745'};
